@@ -15,11 +15,16 @@ function App() {
 
   const handleCloseCountryView = () => {
     console.log("Closing country view");
-    const svg = d3.select(globeRef.current).select("svg g");
-    svg.transition().duration(1000)
+
+    // 먼저 CountryView를 숨깁니다.
+    setSelectedCountry(null);
+
+    // 그런 다음, globe로 줌 아웃합니다.
+    const g = d3.select(globeRef.current).select("svg g");
+    g.style("visibility", "visible"); // Ensure the globe is visible
+    g.transition().duration(1500)
       .attr("transform", `translate(0, 0) scale(1)`)
       .on("end", () => {
-        setSelectedCountry(null);
         console.log("Returned to globe view");
       });
   };

@@ -39,10 +39,11 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
 
             console.log(dx, dy, x, y, scale, translate);
 
-            g.transition().duration(1000)
+            g.transition().duration(1500)
               .attr("transform", `translate(${translate[0]}, ${translate[1]}) scale(${scale})`)
               .on("end", () => {
                 onCountryClick(d);
+                g.style("visibility", "hidden");
               });
           });
 

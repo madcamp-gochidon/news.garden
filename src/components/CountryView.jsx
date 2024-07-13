@@ -4,21 +4,43 @@ import dummyData from '../dummyData.json';
 
 const CountryView = ({ countryData, onClose }) => {
   const canvasRef = useRef(null);
+  const tooltipRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    // 배경을 투명하게 설정
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    function showTooltip(item, dimension, event) {
+      tooltipRef.current.innerText = item[0];
+      tooltipRef.current.style.left = `${event.pageX}px`;
+      tooltipRef.current.style.top = `${event.pageY}px`;
+      tooltipRef.current.style.visibility = 'visible';
+    }
+
+    function hideTooltip() {
+      tooltipRef.current.style.visibility = 'hidden';
+    }
 
     WordCloud(canvas, {
       list: dummyData,
-      gridSize: 8,
-      weightFactor: 10,
+      gridSize: 4,
+      weightFactor: (size) => Math.log2(size) * 5,
       fontFamily: 'Times, serif',
       color: 'random-dark',
-      backgroundColor: '#fff',
       rotateRatio: 0.5,
       rotationSteps: 2,
-      shape: 'circle'
+      shape: 'circle',
+      hover: showTooltip,
+      mouseout: hideTooltip,
+      wait: 100
     });
+
+    return () => {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    };
   }, []);
 
   return (
@@ -57,7 +79,22 @@ const CountryView = ({ countryData, onClose }) => {
           marginTop: '100px',
         }}
       >
-        <canvas ref={canvasRef} width={800} height={600}></canvas>
+        <canvas ref={canvasRef} width={800} height={600} style={{ backgroundColor: 'transparent' }}></canvas>
+        <div
+          className="tooltip"
+          ref={tooltipRef}
+          style={{
+            position: 'absolute',
+            backgroundColor: '#333',
+            color: '#fff',
+            padding: '5px',
+            borderRadius: '3px',
+            visibility: 'hidden',
+            whiteSpace: 'nowrap',
+            zIndex: 1000,
+            pointerEvents: 'none'
+          }}
+        ></div>
       </div>
     </div>
   );
