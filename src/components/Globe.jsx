@@ -11,6 +11,8 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
       .attr("width", width)
       .attr("height", height);
 
+    const g = svg.append("g");
+
     const projection = d3.geoOrthographic()
       .scale(300)
       .translate([width / 2, height / 2])
@@ -20,7 +22,7 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
 
     d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
       .then(world => {
-        svg.selectAll("path")
+        g.selectAll("path")
           .data(world.features)
           .enter().append("path")
           .attr("d", path)
@@ -32,10 +34,12 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
             const dy = y1 - y0;
             const x = (x0 + x1) / 2;
             const y = (y0 + y1) / 2;
-            const scale = Math.max(width / dx, height / dy) * 0.8;
+            const scale = 0.8 / Math.max(dx / width, dy / height);
             const translate = [width / 2 - scale * x, height / 2 - scale * y];
 
-            svg.transition().duration(1000)
+            console.log(dx, dy, x, y, scale, translate);
+
+            g.transition().duration(1000)
               .attr("transform", `translate(${translate[0]}, ${translate[1]}) scale(${scale})`)
               .on("end", () => {
                 onCountryClick(d);
@@ -43,7 +47,7 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
           });
 
         const graticule = d3.geoGraticule();
-        svg.append("path")
+        g.append("path")
           .datum(graticule)
           .attr("d", path)
           .attr("stroke", "#ccc")
@@ -55,7 +59,7 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
         const rotate = projection.rotate();
         const k = 90 / (2 * Math.PI);
         projection.rotate([rotate[0] + event.dx / k, rotate[1] - event.dy / k]);
-        svg.selectAll("path").attr("d", path);
+        g.selectAll("path").attr("d", path);
       });
 
     svg.call(drag);
