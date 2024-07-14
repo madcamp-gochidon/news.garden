@@ -20,7 +20,7 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
 
     const path = d3.geoPath().projection(projection);
 
-    d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson")
+    d3.json("src/data/word.geojson")
       .then(world => {
         g.selectAll("path")
           .data(world.features)

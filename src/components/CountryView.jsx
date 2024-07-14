@@ -12,8 +12,9 @@ const CountryView = ({ countryData, onClose }) => {
     const fetchWordData = async () => {
       setLoading(true);
       try {
-        // const response = await fetch(`http://13.124.216.160:3000/api/get_keyword_and_news/${countryData.id}`);
-        const response = await fetch(`http://13.124.216.160:3000/api/get_keyword_and_news/US`);
+        console.log(countryData.properties.country_code_2);
+        const response = await fetch(`http://13.124.216.160:3000/api/get_keyword_and_news/${countryData.properties.country_code_2}`);
+        // const response = await fetch(`http://13.124.216.160:3000/api/get_keyword_and_news/US`);
         const data = await response.json();
         setWordData(data);
       } catch (error) {
