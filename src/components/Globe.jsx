@@ -8,19 +8,20 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
     const height = window.innerHeight;
 
     const svg = d3.select(ref.current).append("svg")
-      .attr("width", width)
-      .attr("height", height);
+      .attr("width", '100%')
+      .attr("height", '100%')
+      .attr("viewBox", `0 0 ${width} ${height}`);
 
     const g = svg.append("g");
 
     const projection = d3.geoOrthographic()
-      .scale(300)
+      .scale(Math.min(width, height) / 2 - 50)  // 스케일을 화면 크기에 맞게 조정
       .translate([width / 2, height / 2])
       .clipAngle(90);
 
     const path = d3.geoPath().projection(projection);
 
-    d3.json("src/data/word.geojson")
+    d3.json("src/data/world.geojson")
       .then(world => {
         g.selectAll("path")
           .data(world.features)
@@ -64,6 +65,24 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
       });
 
     svg.call(drag);
+
+    const handleResize = () => {
+      const newWidth = window.innerWidth;
+      const newHeight = window.innerHeight;
+      svg.attr("width", '100%')
+         .attr("height", '100%')
+         .attr("viewBox", `0 0 ${newWidth} ${newHeight}`);
+      projection
+        .scale(Math.min(newWidth, newHeight) / 2 - 50)
+        .translate([newWidth / 2, newHeight / 2]);
+      g.selectAll("path").attr("d", path);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
   }, [onCountryClick, ref]);
 
   return (

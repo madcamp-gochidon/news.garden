@@ -30,11 +30,11 @@ function App() {
   };
 
   return (
-    <div className="App" style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
-      <Globe onCountryClick={handleCountryClick} ref={globeRef} />
-      {selectedCountry && (
-        <CountryView countryData={selectedCountry} onClose={handleCloseCountryView} />
-      )}
+    <div className="App">
+      {selectedCountry ? 
+        <CountryView countryData={selectedCountry} onClose={handleCloseCountryView} /> : 
+        <Globe onCountryClick={handleCountryClick} ref={globeRef} />
+      }
     </div>
   );
 }
