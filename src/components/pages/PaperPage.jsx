@@ -193,15 +193,17 @@ const styles = {
   container: {
     width: '300px',
     height: '400px',
-    backgroundColor: '#fdf6e3', // 누런 종이 색상
+    backgroundColor: '#f0f0f0', // 밝은 회색 배경
     padding: '20px',
     fontFamily: "'Times New Roman', Times, serif",
-    boxShadow: '0 0 10px rgba(0, 0, 0, 0.5)',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // 부드러운 그림자 효과
     boxSizing: 'border-box',
-    borderRadius: '10px',
+    border: '1px solid #ddd', // 얇은 테두리
     position: 'absolute',
     cursor: 'pointer',
+    transition: 'transform 0.3s ease', // 애니메이션 적용
   },
+
   backButton: {
     position: 'absolute',
     top: '20px',
