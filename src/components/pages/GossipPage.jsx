@@ -27,7 +27,7 @@ const GossipPage = ({ countryData, onBack }) => {
     const fetchWordData = async () => {
       setLoading(true);
       try {
-        const response = await fetch(`http://13.124.216.160:3000/api/get_keyword_and_news/${countryData.properties.country_code_2}`);
+        const response = await fetch(`http://13.124.216.160:3000/api/get_keyword_and_news/${countryData.properties.iso_a2}`);
         const data = await response.json();
         setWordData(data);
       } catch (error) {
