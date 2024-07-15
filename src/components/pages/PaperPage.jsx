@@ -9,7 +9,7 @@ const ItemTypes = {
 };
 
 const Paper = ({ article, style, index, movePaper, initialX, initialY, initialRotation, onClick, isSelected, zIndex }) => {
-  const [{ isDragging }, drag, preview] = useDrag(() => ({
+  const [{ isDragging }, drag] = useDrag(() => ({
     type: ItemTypes.PAPER,
     item: { index },
     collect: (monitor) => ({
@@ -21,7 +21,7 @@ const Paper = ({ article, style, index, movePaper, initialX, initialY, initialRo
     () => ({
       accept: ItemTypes.PAPER,
       hover: throttle((item, monitor) => {
-        const delta = monitor.getClientOffset();
+        const delta = monitor.getDifferenceFromInitialOffset();
         if (delta && !isSelected) {
           movePaper(item.index, delta.x, delta.y);
         }
@@ -30,11 +30,16 @@ const Paper = ({ article, style, index, movePaper, initialX, initialY, initialRo
     [index, isSelected]
   );
 
+  const handleHeadlineClick = () => {
+    if (isSelected && article.link) {
+      window.open(article.link, '_blank');
+    }
+  };
+
   return (
     <motion.div
       ref={(node) => {
-        drag(node);
-        drop(node);
+        drag(drop(node));
       }}
       style={{
         ...style,
@@ -43,18 +48,18 @@ const Paper = ({ article, style, index, movePaper, initialX, initialY, initialRo
       }}
       initial={{ y: '-100vh', opacity: 0 }}
       animate={{
-        y: isSelected ? window.innerHeight / 2 - 200 : initialY,
+        y: isSelected ? window.innerHeight / 2 - 250 : initialY, // 세로 크기 조절
         x: isSelected ? window.innerWidth / 2 - 150 : initialX,
         rotate: isSelected ? 0 : initialRotation,
         opacity: 1,
-        scale: isSelected ? 2 : 1,
+        scale: isSelected ? 1.5 : 1, // 축소된 확대 비율
       }}
       exit={{ y: '-100vh', opacity: 0 }}
-      transition={{ duration: 1 }}
+      transition={{ duration: 0.5 }}
       onClick={onClick}
     >
-      <h2 style={styles.headline}>{article.headline}</h2>
-      <p style={styles.summary}>{article.summary}</p>
+      <h2 style={styles.headline} onClick={handleHeadlineClick}>{article.title}</h2>
+      <p style={styles.summary}>{article.summary === "No summary available. More in link" ? "No summary available. More in link" : article.summary}</p>
     </motion.div>
   );
 };
@@ -66,52 +71,41 @@ const PaperPage = ({ countryData, onBack }) => {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // API 호출 부분은 주석 처리하였습니다.
-    // const fetchNews = async () => {
-    //   const response = await fetch(`https://api.news.org/v1/headlines?country=${countryData.properties.iso_a2}`);
-    //   const data = await response.json();
-    //   setNews(data.articles);
-    // };
+    const fetchNews = async () => {
+      try {
+        const response = await fetch(`http://13.124.216.160:3000/api/get_news_summary/${countryData.properties.iso_a2}`);
+        const data = await response.json();
+        // value 기준으로 정렬하고 최대 12개만 사용
+        const sortedData = data.sort((a, b) => b.value - a.value).slice(0, 12);
+        setNews(
+          sortedData.map((article) => ({
+            ...article,
+            ...generateRandomPosition(),
+          }))
+        );
+        setZIndices(sortedData.map((_, index) => index));
+      } catch (error) {
+        console.error('Error fetching news:', error);
+      }
+    };
 
-    // 더미 데이터 사용
-    const dummyNews = [
-      { headline: 'News Headline 1', summary: 'This is a summary of news article 1. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-      { headline: 'News Headline 2', summary: 'This is a summary of news article 2. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-      { headline: 'News Headline 3', summary: 'This is a summary of news article 3. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-      { headline: 'News Headline 4', summary: 'This is a summary of news article 4. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-      { headline: 'News Headline 5', summary: 'This is a summary of news article 5. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-      { headline: 'News Headline 6', summary: 'This is a summary of news article 6. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-      { headline: 'News Headline 7', summary: 'This is a summary of news article 7. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-      { headline: 'News Headline 8', summary: 'This is a summary of news article 8. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-      { headline: 'News Headline 9', summary: 'This is a summary of news article 9. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-      { headline: 'News Headline 10', summary: 'This is a summary of news article 10. It is supposed to be around 150 characters long to simulate the actual news summary.' },
-    ];
-
-    setNews(
-      dummyNews.map((article) => ({
-        ...article,
-        ...generateRandomPosition(),
-      }))
-    );
-    setZIndices(dummyNews.map((_, index) => index));
-
-    // fetchNews();
+    fetchNews();
   }, [countryData]);
 
   const generateRandomPosition = () => {
     const x = Math.random() * (window.innerWidth - 300); // 300은 페이지의 대략적인 너비
-    const y = Math.random() * (window.innerHeight - 400); // 400은 페이지의 대략적인 높이
+    const y = Math.random() * (window.innerHeight - 600); // 600은 페이지의 대략적인 높이
     const rotation = Math.random() * 60 - 30; // -30도에서 30도 사이의 랜덤 회전
     return { x, y, rotation };
   };
 
-  const movePaper = useCallback((index, x, y) => {
-    const constrainedX = Math.min(window.innerWidth - 300, Math.max(0, x));
-    const constrainedY = Math.min(window.innerHeight - 400, Math.max(0, y));
+  const movePaper = useCallback((index, deltaX, deltaY) => {
     setNews((prevNews) =>
       prevNews.map((article, i) => {
         if (i === index) {
-          return { ...article, x: constrainedX, y: constrainedY };
+          const newX = Math.min(window.innerWidth - 300, Math.max(0, (article.x || 0) + deltaX));
+          const newY = Math.min(window.innerHeight - 600, Math.max(0, (article.y || 0) + deltaY));
+          return { ...article, x: newX, y: newY };
         }
         return article;
       })
@@ -192,7 +186,7 @@ const styles = {
   },
   container: {
     width: '300px',
-    height: '400px',
+    height: '600px', // 세로 크기 늘림
     backgroundColor: '#f0f0f0', // 밝은 회색 배경
     padding: '20px',
     fontFamily: "'Times New Roman', Times, serif",
@@ -203,7 +197,6 @@ const styles = {
     cursor: 'pointer',
     transition: 'transform 0.3s ease', // 애니메이션 적용
   },
-
   backButton: {
     position: 'absolute',
     top: '20px',
@@ -217,6 +210,7 @@ const styles = {
     fontSize: '24px',
     fontWeight: 'bold',
     marginBottom: '10px',
+    cursor: 'pointer', // 링크처럼 보이도록 마우스 커서 변경
   },
   summary: {
     fontSize: '18px',
