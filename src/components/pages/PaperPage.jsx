@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import throttle from 'lodash/throttle';
 
 const ItemTypes = {
@@ -49,7 +49,8 @@ const Paper = ({ article, style, index, movePaper, initialX, initialY, initialRo
         opacity: 1,
         scale: isSelected ? 2 : 1,
       }}
-      transition={{ duration: 0.5 }}
+      exit={{ y: '-100vh', opacity: 0 }}
+      transition={{ duration: 1 }}
       onClick={onClick}
     >
       <h2 style={styles.headline}>{article.headline}</h2>
@@ -62,6 +63,7 @@ const PaperPage = ({ countryData, onBack }) => {
   const [news, setNews] = useState([]);
   const [selectedPage, setSelectedPage] = useState(null);
   const [zIndices, setZIndices] = useState([]);
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
     // API 호출 부분은 주석 처리하였습니다.
@@ -130,6 +132,11 @@ const PaperPage = ({ countryData, onBack }) => {
     }
   };
 
+  const handleExit = () => {
+    setIsExiting(true);
+    setTimeout(onBack, 500); // 애니메이션 종료 시간 후에 onBack 호출
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div style={styles.outerContainer} onClick={() => setSelectedPage(null)}>
@@ -138,37 +145,39 @@ const PaperPage = ({ countryData, onBack }) => {
           style={styles.backButton}
           onClick={(e) => {
             e.stopPropagation();
-            onBack();
+            handleExit();
           }}
         >
           x
         </div>
-        {news.map((article, index) => {
-          const { x = 0, y = 0, rotation = 0 } = article;
-          const isSelected = selectedPage === index;
-          return (
-            <Paper
-              key={index}
-              article={article}
-              index={index}
-              movePaper={movePaper}
-              initialX={x}
-              initialY={y}
-              initialRotation={rotation}
-              isSelected={isSelected}
-              onClick={(e) => {
-                e.stopPropagation();
-                handlePageClick(index);
-              }}
-              zIndex={zIndices[index]}
-              style={{
-                ...styles.container,
-                transform: `translate(${x}px, ${y}px) rotate(${rotation}deg)`,
-                transition: 'transform 0.3s ease', // 애니메이션 적용
-              }}
-            />
-          );
-        })}
+        <AnimatePresence>
+          {!isExiting && news.map((article, index) => {
+            const { x = 0, y = 0, rotation = 0 } = article;
+            const isSelected = selectedPage === index;
+            return (
+              <Paper
+                key={index}
+                article={article}
+                index={index}
+                movePaper={movePaper}
+                initialX={x}
+                initialY={y}
+                initialRotation={rotation}
+                isSelected={isSelected}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePageClick(index);
+                }}
+                zIndex={zIndices[index]}
+                style={{
+                  ...styles.container,
+                  transform: `translate(${x}px, ${y}px) rotate(${rotation}deg)`,
+                  transition: 'transform 0.5s ease', // 애니메이션 적용
+                }}
+              />
+            );
+          })}
+        </AnimatePresence>
       </div>
     </DndProvider>
   );
