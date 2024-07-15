@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/media': {
-        target: 'https://images.unsplash.com',
+        target: 'https://via.placeholder.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/media/, '')
       },
@@ -20,6 +20,11 @@ export default defineConfig({
         target: 'https://www.w3schools.com/html',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/video/, '')
+      },
+      '/youtube': {
+        target: 'https://www.youtube.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/youtube/, '')
       }
     }
   }

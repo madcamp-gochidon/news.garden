@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
@@ -17,7 +18,16 @@ const dummyData = [
   { type: 'video', url: '/video/mov_bbb.mp4' }
 ];
 
-// www.w3schools.com/html/video/mov_bbb.mp4
+const getExtendedData = (data, count) => {
+  const extendedData = [...data];
+  while (extendedData.length < count) {
+    const randomIndex = Math.floor(Math.random() * data.length);
+    extendedData.push(data[randomIndex]);
+  }
+  return extendedData;
+};
+
+const extendedData = getExtendedData(dummyData, 30);
 
 const MediaBox = ({ url, type }) => {
   const meshRef = useRef();
@@ -99,7 +109,7 @@ const MediaPage = ({ countryData, onBack }) => {
     //     console.error('Error fetching media data:', error);
     //   });
 
-    setMediaData(dummyData);
+    setMediaData(extendedData);
   }, [countryData]);
 
   return (
@@ -124,8 +134,9 @@ const MediaPage = ({ countryData, onBack }) => {
 
         <Layer data={mediaData.slice(0, 6)} radius={10} rotationSpeed={0.1} height={0} />
         <Layer data={mediaData.slice(6, 12)} radius={8} rotationSpeed={0.2} height={4} />
-        <Layer data={mediaData.slice(12, 16)} radius={6} rotationSpeed={0.3} height={8} />
-        <Layer data={mediaData.slice(16, 19)} radius={4} rotationSpeed={0.4} height={12} />
+        <Layer data={mediaData.slice(12, 18)} radius={6} rotationSpeed={0.3} height={8} />
+        <Layer data={mediaData.slice(18, 24)} radius={5} rotationSpeed={0.4} height={12} />
+        <Layer data={mediaData.slice(24, 30)} radius={4} rotationSpeed={0.5} height={16} />
       </Canvas>
     </div>
   );
