@@ -10,6 +10,12 @@ const dummyData = [
   { type: 'image', url: '/media/photo-1516117172878-fd2c41f4a759?fit=crop&w=300&h=200&q=80' },
   { type: 'video', url: '/video/mov_bbb.mp4' },
   { type: 'youtube', url: 'Y2-xZ-1HE-Q' }, // YouTube video ID
+  { type: 'image', url: '/media/photo-1533227268428-e9a1c7fb5a83?fit=crop&w=300&h=200&q=80' },
+  { type: 'video', url: '/video/mov_bbb.mp4' },
+  { type: 'youtube', url: 'IrydklNpcFI' }, // YouTube video ID
+  { type: 'image', url: '/media/photo-1503023345310-bd7c1de61c7d?fit=crop&w=300&h=200&q=80' },
+  { type: 'video', url: '/video/mov_bbb.mp4' },
+  { type: 'youtube', url: '9ubytEsCaS0' } // YouTube video ID
 ];
 
 const getExtendedData = (data, count) => {
@@ -21,7 +27,7 @@ const getExtendedData = (data, count) => {
   return extendedData;
 };
 
-const extendedData = getExtendedData(dummyData, 54);
+const extendedData = getExtendedData(dummyData, 36); // 데이터 개수를 줄여서 36개로 설정
 
 const MediaBox = ({ url, type, group }) => {
   const objectRef = useRef();
@@ -40,7 +46,7 @@ const MediaBox = ({ url, type, group }) => {
     iframe.style.border = '0px';
 
     if (type === 'youtube') {
-      iframe.src = `https://www.youtube.com/embed/${url}?rel=0&autoplay=1&mute=1`;
+      iframe.src = `https://www.youtube.com/embed/${url}?rel=0&autoplay=1`;
     } else if (type === 'video') {
       iframe.src = url;
     } else {
@@ -157,9 +163,15 @@ const MediaPage = ({ countryData, onBack }) => {
   const CameraSetup = () => {
     const { camera } = useThree();
     useEffect(() => {
-      camera.position.set(0, 3000, 4000);
-      camera.lookAt(0, 0, 0);
+      camera.position.set(-431.3940708246844, -261.9332732513346, 343.39226925342376);
+      camera.rotation.set(0.651631214980874, -0.7848259495328591, 0.49440462095593685);
     }, [camera]);
+
+    useFrame(() => {
+      console.log(`Camera Position: ${camera.position.x}, ${camera.position.y}, ${camera.position.z}`);
+      console.log(`Camera Rotation: ${camera.rotation.x}, ${camera.rotation.y}, ${camera.rotation.z}`);
+    }, [camera]);
+
     return null;
   };
 
@@ -183,17 +195,12 @@ const MediaPage = ({ countryData, onBack }) => {
         <CameraSetup />
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} />
-        <OrbitControls enablePan={false} enableRotate={true} maxPolarAngle={Math.PI / 2} minPolarAngle={0} />
+        <OrbitControls enablePan={true} enableRotate={true} maxPolarAngle={Math.PI} minPolarAngle={0} />
         <CSS3DRendererComponent />
-        <Layer data={mediaData.slice(0, 6)} radius={2600} rotationSpeed={0.1} height={0} />
-        <Layer data={mediaData.slice(6, 12)} radius={2400} rotationSpeed={0.2} height={500} />
-        <Layer data={mediaData.slice(12, 18)} radius={2200} rotationSpeed={0.3} height={1000} />
-        <Layer data={mediaData.slice(18, 24)} radius={2000} rotationSpeed={0.4} height={1500} />
-        <Layer data={mediaData.slice(24, 30)} radius={1800} rotationSpeed={0.5} height={2000} />
-        <Layer data={mediaData.slice(30, 36)} radius={1600} rotationSpeed={0.6} height={2500} />
-        <Layer data={mediaData.slice(36, 42)} radius={1400} rotationSpeed={0.7} height={3000} />
-        <Layer data={mediaData.slice(42, 48)} radius={1200} rotationSpeed={0.8} height={3500} />
-        <Layer data={mediaData.slice(48, 54)} radius={1000} rotationSpeed={0.9} height={4000} />
+        <Layer data={mediaData.slice(0, 9)} radius={1600} rotationSpeed={0.1} height={0} />
+        <Layer data={mediaData.slice(9, 18)} radius={1400} rotationSpeed={0.2} height={500} />
+        <Layer data={mediaData.slice(18, 27)} radius={1200} rotationSpeed={0.3} height={1000} />
+        <Layer data={mediaData.slice(27, 36)} radius={1000} rotationSpeed={0.4} height={1500} />
       </Canvas>
     </div>
   );
