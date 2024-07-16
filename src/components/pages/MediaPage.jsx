@@ -23,11 +23,12 @@ const getExtendedData = (data, count) => {
 
 const extendedData = getExtendedData(dummyData, 54);
 
-const MediaBox = ({ url, type, position, rotation }) => {
-  const { scene } = useThree();
+const MediaBox = ({ url, type, group }) => {
   const objectRef = useRef();
 
   useEffect(() => {
+    if (!group) return;
+
     const div = document.createElement('div');
     div.style.width = '480px';
     div.style.height = '360px';
@@ -49,59 +50,53 @@ const MediaBox = ({ url, type, position, rotation }) => {
     div.appendChild(iframe);
 
     const object = new CSS3DObject(div);
-    object.position.set(position.x, position.y, position.z);
-    object.rotation.set(rotation.x, rotation.y, rotation.z);
-
-    scene.add(object);
+    group.add(object);
     objectRef.current = object;
 
     return () => {
-      scene.remove(object);
+      group.remove(object);
     };
-  }, [url, type, position, rotation, scene]);
-
-  useFrame(({ clock }) => {
-    const elapsedTime = clock.getElapsedTime();
-    const angle = elapsedTime * 0.1;
-    objectRef.current.position.set(
-      position.x * Math.cos(angle) - position.z * Math.sin(angle),
-      position.y,
-      position.x * Math.sin(angle) + position.z * Math.cos(angle)
-    );
-    objectRef.current.rotation.set(
-      0, 
-      rotation.y - angle, 
-      0,
-    );
-  });
+  }, [url, type, group]);
 
   return null;
 };
 
 const Layer = ({ data, radius, rotationSpeed, height }) => {
   const groupRef = useRef();
+  const { scene } = useThree();
 
-  // useFrame(() => {
-  //   const elapsedTime = performance.now() * 0.001;
-  //   const angle = elapsedTime * rotationSpeed;
-  //   groupRef.current.children.forEach((child, index) => {
-  //     const itemAngle = index * (2 * Math.PI / data.length) + angle;
-  //     const x = radius * Math.cos(itemAngle);
-  //     const z = radius * Math.sin(itemAngle);
-  //     child.position.set(x, height, z);
-  //     child.rotation.y = -itemAngle;
-  //   });
-  // });
+  useEffect(() => {
+    if (groupRef.current) {
+      scene.add(groupRef.current);
+      return () => {
+        scene.remove(groupRef.current);
+      };
+    }
+  }, [scene]);
+
+  useFrame(({ clock }) => {
+    const elapsedTime = clock.getElapsedTime();
+    const angle = elapsedTime * rotationSpeed;
+    if (groupRef.current) {
+      groupRef.current.children.forEach((child, index) => {
+        const itemAngle = index * (2 * Math.PI / data.length) + angle;
+        const x = radius * Math.cos(itemAngle);
+        const z = radius * Math.sin(itemAngle);
+        const y = height;
+        child.position.set(x, y, z);
+        child.rotation.set(0, -itemAngle + Math.PI / 2, 0);
+      });
+    }
+  });
 
   return (
     <group ref={groupRef}>
-      {data.map((item, index) => (
+      {groupRef.current && data.map((item, index) => (
         <MediaBox
           key={index}
           url={item.url}
           type={item.type}
-          position={{ x: radius * Math.cos(index * (2 * Math.PI / data.length)), y: height, z: radius * Math.sin(index * (2 * Math.PI / data.length)) }}
-          rotation={{ x: 0, y: Math.PI / 2 -index * (2 * Math.PI / data.length), z: 0 }}
+          group={groupRef.current}
         />
       ))}
     </group>
@@ -195,10 +190,10 @@ const MediaPage = ({ countryData, onBack }) => {
         <Layer data={mediaData.slice(12, 18)} radius={2200} rotationSpeed={0.3} height={1000} />
         <Layer data={mediaData.slice(18, 24)} radius={2000} rotationSpeed={0.4} height={1500} />
         <Layer data={mediaData.slice(24, 30)} radius={1800} rotationSpeed={0.5} height={2000} />
-        <Layer data={mediaData.slice(30, 36)} radius={1600} rotationSpeed={0.5} height={2500} />
-        <Layer data={mediaData.slice(36, 42)} radius={1400} rotationSpeed={0.5} height={3000} />
-        <Layer data={mediaData.slice(42, 48)} radius={1200} rotationSpeed={0.5} height={3500} />
-        <Layer data={mediaData.slice(48, 54)} radius={1000} rotationSpeed={0.5} height={4000} />
+        <Layer data={mediaData.slice(30, 36)} radius={1600} rotationSpeed={0.6} height={2500} />
+        <Layer data={mediaData.slice(36, 42)} radius={1400} rotationSpeed={0.7} height={3000} />
+        <Layer data={mediaData.slice(42, 48)} radius={1200} rotationSpeed={0.8} height={3500} />
+        <Layer data={mediaData.slice(48, 54)} radius={1000} rotationSpeed={0.9} height={4000} />
       </Canvas>
     </div>
   );
