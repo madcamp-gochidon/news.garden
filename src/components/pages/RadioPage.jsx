@@ -1,19 +1,31 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 
 const RadioPage = ({ countryData, onBack }) => {
   const [stations, setStations] = useState([]);
-  const [currentStationIndex, setCurrentStationIndex] = useState(0);
-  const [audio, setAudio] = useState(new Audio());
-  const [volume, setVolume] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const circleRef = useRef(null);
 
   useEffect(() => {
-    // 특정 국가의 라디오 방송 목록을 가져오는 함수
     const fetchStations = async () => {
       try {
-        const countryCode = countryData.properties.iso_a2 || countryData.properties.iso_a3; // 2글자 또는 3글자 국가 코드 사용
+        const countryCode = countryData.properties.iso_a2 || countryData.properties.iso_a3;
         const response = await axios.get(`https://at1.api.radio-browser.info/json/stations/bycountrycodeexact/${countryCode}`);
-        setStations(response.data);
+        let fetchedStations = response.data;
+
+        // "votes" 기준으로 내림차순 정렬
+        fetchedStations.sort((a, b) => b.votes - a.votes);
+
+        if (fetchedStations.length > 21) {
+          fetchedStations = fetchedStations.slice(0, 21);
+        } else {
+          while (fetchedStations.length < 21) {
+            const randomStation = fetchedStations[Math.floor(Math.random() * fetchedStations.length)];
+            fetchedStations.push(randomStation);
+          }
+        }
+
+        setStations(fetchedStations);
       } catch (error) {
         console.error("Error fetching radio stations: ", error);
       }
@@ -22,31 +34,82 @@ const RadioPage = ({ countryData, onBack }) => {
     fetchStations();
   }, [countryData.properties.iso_a2, countryData.properties.iso_a3]);
 
-  useEffect(() => {
-    if (stations.length > 0) {
-      audio.src = stations[currentStationIndex].url_resolved;
-      audio.play();
-    }
-    return () => {
-      audio.pause();
+  const handleMouseDown = (e) => {
+    const startX = e.clientX;
+
+    const handleMouseMove = (moveEvent) => {
+      const deltaX = moveEvent.clientX - startX;
+      const newRotation = rotation + deltaX / 5; // Adjust the division factor to control sensitivity
+      setRotation(newRotation);
     };
-  }, [currentStationIndex, stations]);
 
-  const handleVolumeChange = (newVolume) => {
-    setVolume(newVolume);
-    audio.volume = newVolume;
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleNextStation = () => {
-    setCurrentStationIndex((prevIndex) => (prevIndex + 1) % stations.length);
+  const cardStyle = {
+    position: 'absolute',
+    width: '10vw',
+    height: '10vw',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '10px',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
   };
 
-  const handlePrevStation = () => {
-    setCurrentStationIndex((prevIndex) => (prevIndex - 1 + stations.length) % stations.length);
+  const textStyle = {
+    transform: 'rotate(180deg)',
+  };
+
+  const renderCards = () => {
+    const radius = (window.innerHeight * 0.4) / window.innerHeight * 100; // Adjust the radius based on window height
+    const cards = [];
+    for (let i = 0; i < 21; i++) {
+      const angle = (i / 21) * 2 * Math.PI + (rotation * Math.PI / 180);
+      const x = radius * Math.cos(angle);
+      const y = radius * Math.sin(angle);
+      const cardRotation = (angle * 180) / Math.PI; // Convert radians to degrees
+      cards.push(
+        <div
+          key={i}
+          style={{
+            ...cardStyle,
+            transform: `translate(${x}vh, ${y}vh) rotate(${cardRotation}deg)`,
+          }}
+        >
+          <div style={textStyle}>
+            {stations[i]?.name || 'Station'}
+          </div>
+        </div>
+      );
+    }
+
+    cards.push(
+      <div
+        key="line"
+        style={{
+          position: 'absolute',
+          width: `50vh`,
+          height: '2px',
+          backgroundColor: 'red',
+          transform: `translate(0%, 50%) translateX(-${radius}vh) rotate(0deg)`,
+          transformOrigin: 'top',
+        }}
+      />
+    );
+
+    return cards;
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
+    <div style={{ textAlign: 'center', padding: '20px', height: '100vh', position: 'relative' }}>
       <h1>Radio Page</h1>
       <p>Country: {countryData.properties.name}</p>
       <div
@@ -62,75 +125,20 @@ const RadioPage = ({ countryData, onBack }) => {
       >
         x
       </div>
-      <div style={{
-        display: 'inline-block',
-        padding: '20px',
-        border: '2px solid black',
-        borderRadius: '10px',
-        width: '400px',
-        backgroundColor: '#d3d3d3',
-        boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
-      }}>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}>
-          <div style={{
-            backgroundColor: '#fff',
-            padding: '10px',
-            borderRadius: '5px',
-            width: '80%',
-            textAlign: 'center',
-            marginBottom: '20px',
-            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-          }}>
-            <h2 style={{ margin: 0 }}>{stations.length > 0 ? stations[currentStationIndex].name : 'Loading...'}</h2>
-          </div>
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            width: '80%',
-            marginBottom: '20px'
-          }}>
-            <button onClick={handlePrevStation} style={{
-              backgroundColor: '#f0f0f0',
-              border: '1px solid #ccc',
-              borderRadius: '5px',
-              padding: '10px 20px',
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-            }}>Previous</button>
-            <button onClick={handleNextStation} style={{
-              backgroundColor: '#f0f0f0',
-              border: '1px solid #ccc',
-              borderRadius: '5px',
-              padding: '10px 20px',
-              cursor: 'pointer',
-              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
-            }}>Next</button>
-          </div>
-          <div style={{
-            width: '80%'
-          }}>
-            <label htmlFor="volume" style={{
-              display: 'block',
-              marginBottom: '10px'
-            }}>Volume: </label>
-            <input
-              id="volume"
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={(e) => handleVolumeChange(e.target.value)}
-              style={{
-                width: '100%'
-              }}
-            />
-          </div>
-        </div>
+      <div
+        ref={circleRef}
+        onMouseDown={handleMouseDown}
+        style={{
+          position: 'absolute',
+          top: '50%',
+          right: '0%',
+          width: '0',
+          height: '0',
+          transform: 'translate(-50%, -50%)',
+          cursor: 'grab',
+        }}
+      >
+        {renderCards()}
       </div>
     </div>
   );

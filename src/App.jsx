@@ -2,10 +2,12 @@ import React, { useState, useRef } from 'react';
 import * as d3 from 'd3';
 import Globe from './components/Globe';
 import CountryView from './components/CountryView';
+import Splash from './components/Splash'; // 스플래쉬 컴포넌트 임포트
 import './App.css';
 
 function App() {
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [showSplash, setShowSplash] = useState(true); // 스플래쉬 상태 추가
   const globeRef = useRef(null);
 
   const handleCountryClick = (countryData) => {
@@ -29,12 +31,19 @@ function App() {
       });
   };
 
+  const handleSplashAnimationEnd = () => {
+    setShowSplash(false); // 스플래쉬 애니메이션이 끝나면 숨깁니다.
+  };
+
   return (
     <div className="App">
-      {selectedCountry ? 
-        <CountryView countryData={selectedCountry} onClose={handleCloseCountryView} /> : 
-        <Globe onCountryClick={handleCountryClick} ref={globeRef} />
-      }
+      {showSplash ? (
+        <Splash onAnimationEnd={handleSplashAnimationEnd} />
+      ) : (
+        selectedCountry ? 
+          <CountryView countryData={selectedCountry} onClose={handleCloseCountryView} /> : 
+          <Globe onCountryClick={handleCountryClick} ref={globeRef} />
+      )}
     </div>
   );
 }

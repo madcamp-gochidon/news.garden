@@ -1,8 +1,9 @@
-import React, { useEffect, forwardRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
-import * as topojson from 'topojson';
 
-const Globe = forwardRef(({ onCountryClick }, ref) => {
+const Globe = ({ onCountryClick }) => {
+  const ref = useRef();
+
   useEffect(() => {
     const width = window.innerWidth;
     const height = window.innerHeight;
@@ -15,7 +16,7 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
     const g = svg.append("g");
 
     const projection = d3.geoOrthographic()
-      .scale(Math.min(width, height) / 2 - 50)  // 스케일을 화면 크기에 맞게 조정
+      .scale(Math.min(width, height) / 2 - 50)
       .translate([width / 2, height / 2])
       .clipAngle(90);
 
@@ -66,6 +67,14 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
 
     svg.call(drag);
 
+    const zoom = d3.zoom()
+      .scaleExtent([0.5, 10])
+      .on('zoom', (event) => {
+        g.attr('transform', event.transform);
+      });
+
+    svg.call(zoom);
+
     const handleResize = () => {
       const newWidth = window.innerWidth;
       const newHeight = window.innerHeight;
@@ -85,9 +94,13 @@ const Globe = forwardRef(({ onCountryClick }, ref) => {
     };
   }, [onCountryClick, ref]);
 
+ 
   return (
-    <div id="globe-container" ref={ref} style={{ width: '100vw', height: '100vh' }} />
+    <div id="globe-container" ref={ref} style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      <div style={{ position: 'absolute', bottom: '20px', right: '20px', display: 'flex', flexDirection: 'column' }}>
+      </div>
+    </div>
   );
-});
+};
 
 export default Globe;

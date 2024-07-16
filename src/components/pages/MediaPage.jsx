@@ -2,21 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { CSS3DRenderer, CSS3DObject } from 'three/examples/jsm/renderers/CSS3DRenderer';
-
-const dummyData = [
-  { type: 'image', url: '/media/photo-1506748686214-e9df14d4d9d0?fit=crop&w=300&h=200&q=80' },
-  { type: 'video', url: '/video/mov_bbb.mp4' },
-  { type: 'youtube', url: 'SJOz3qjfQXU' }, // YouTube video ID
-  { type: 'image', url: '/media/photo-1516117172878-fd2c41f4a759?fit=crop&w=300&h=200&q=80' },
-  { type: 'video', url: '/video/mov_bbb.mp4' },
-  { type: 'youtube', url: 'Y2-xZ-1HE-Q' }, // YouTube video ID
-  { type: 'image', url: '/media/photo-1533227268428-e9a1c7fb5a83?fit=crop&w=300&h=200&q=80' },
-  { type: 'video', url: '/video/mov_bbb.mp4' },
-  { type: 'youtube', url: 'IrydklNpcFI' }, // YouTube video ID
-  { type: 'image', url: '/media/photo-1503023345310-bd7c1de61c7d?fit=crop&w=300&h=200&q=80' },
-  { type: 'video', url: '/video/mov_bbb.mp4' },
-  { type: 'youtube', url: '9ubytEsCaS0' } // YouTube video ID
-];
+import axios from 'axios';
 
 const getExtendedData = (data, count) => {
   const extendedData = [...data];
@@ -26,8 +12,6 @@ const getExtendedData = (data, count) => {
   }
   return extendedData;
 };
-
-const extendedData = getExtendedData(dummyData, 36); // 데이터 개수를 줄여서 36개로 설정
 
 const MediaBox = ({ url, type, group }) => {
   const objectRef = useRef();
@@ -148,16 +132,17 @@ const MediaPage = ({ countryData, onBack }) => {
   const [mediaData, setMediaData] = useState([]);
 
   useEffect(() => {
-    // Replace with actual API call
-    // axios.get(`/api/media/${countryData.properties.code}`)
-    //   .then(response => {
-    //     setMediaData(response.data);
-    //   })
-    //   .catch(error => {
-    //     console.error('Error fetching media data:', error);
-    //   });
+    const fetchMediaData = async () => {
+      try {
+        const response = await axios.get(`http://13.124.216.160:3000/api/get_video_ids/${countryData.properties.iso_a2}`);
+        const videoData = response.data.map(id => ({ type: 'youtube', url: id }));
+        setMediaData(getExtendedData(videoData, 36));
+      } catch (error) {
+        console.error('Error fetching media data:', error);
+      }
+    };
 
-    setMediaData(extendedData);
+    fetchMediaData();
   }, [countryData]);
 
   const CameraSetup = () => {
