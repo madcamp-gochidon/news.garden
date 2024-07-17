@@ -1,53 +1,66 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Paper = ({ article, style, index, initialX, initialY, initialRotation, onClick, isSelected, zIndex, onMove }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [position, setPosition] = useState({ x: initialX, y: initialY });
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+  const paperRef = useRef(null);
 
-  const handleMouseDown = (e) => {
+  const handlePointerDown = (e) => {
+    e.preventDefault();
     setIsDragging(true);
-    setStartPos({ x: e.clientX - position.x, y: e.clientY - position.y });
+    paperRef.current.setPointerCapture(e.pointerId);
   };
 
-  const handleMouseMove = (e) => {
+  const handlePointerMove = (e) => {
     if (isDragging) {
-      const newPos = { x: e.clientX - startPos.x, y: e.clientY - startPos.y };
+      const newPos = { x: e.clientX - paperRef.current.clientWidth / 2, y: e.clientY - paperRef.current.clientHeight / 2 };
       setPosition(newPos);
       onMove(index, newPos.x, newPos.y);
     }
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e) => {
     setIsDragging(false);
+    paperRef.current.releasePointerCapture(e.pointerId);
   };
 
   useEffect(() => {
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    } else {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    }
+    const element = paperRef.current;
+
+    element.addEventListener('pointermove', handlePointerMove);
+    element.addEventListener('pointerup', handlePointerUp);
+    element.addEventListener('pointercancel', handlePointerUp);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
+      element.removeEventListener('pointermove', handlePointerMove);
+      element.removeEventListener('pointerup', handlePointerUp);
+      element.removeEventListener('pointercancel', handlePointerUp);
     };
   }, [isDragging]);
 
   return (
     <motion.div
+      ref={paperRef}
       style={{
         ...style,
         opacity: isDragging ? 0.5 : 1,
         zIndex: isSelected ? 1000 : zIndex,
         transform: `translate(${position.x}px, ${position.y}px) rotate(${isSelected ? 0 : initialRotation}deg)`,
-        transition: 'transform 0.3s ease',
+        userSelect: 'none',
+        cursor: isDragging ? 'grabbing' : 'grab',
       }}
-      onMouseDown={handleMouseDown}
+      initial={{ y: '-100vh', opacity: 0 }}
+      animate={{
+        y: isSelected ? window.innerHeight / 2 - 200 : position.y,
+        x: isSelected ? window.innerWidth / 2 - 150 : position.x,
+        rotate: isSelected ? 0 : initialRotation,
+        opacity: 1,
+        scale: isSelected ? 1.5 : 1,
+      }}
+      exit={{ y: '-100vh', opacity: 0 }}
+      transition={{ duration: 0.5 }}
+      onPointerDown={handlePointerDown}
       onClick={onClick}
     >
       <div>

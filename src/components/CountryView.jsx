@@ -46,6 +46,20 @@ const CloseButton = styled(Box)`
   z-index: 10;
 `;
 
+const CountryNameBox = styled(Box)`
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  font-size: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
 const CountryView = ({ countryData, onClose }) => {
   const [currentPage, setCurrentPage] = useState('main');
 
@@ -117,6 +131,9 @@ const CountryView = ({ countryData, onClose }) => {
         </CloseButton>
       )}
       {renderPage()}
+      <CountryNameBox>
+        <Typography variant="h6">{countryData.properties.name || 'Country Name'}</Typography>
+      </CountryNameBox>
     </div>
   );
 };

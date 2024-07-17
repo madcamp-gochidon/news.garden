@@ -83,7 +83,7 @@ const WordPage = ({ countryData, onBack }) => {
         list: wordData,
         gridSize: 15,
         weightFactor: (size) => (size) * 0.03 * widthFactor * heightFactor,
-        fontFamily: 'Roboto',
+        fontFamily: 'Playfair Display',
         color: (word, weight, fontSize, distance, theta) => {
           return selectedPalette[Math.floor(Math.random() * selectedPalette.length)];
         },

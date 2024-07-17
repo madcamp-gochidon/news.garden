@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaCaretUp } from 'react-icons/fa'; // 아이콘 추가
+import { FaCaretDown } from 'react-icons/fa';
 
 const RadioPage = ({ countryData, onBack }) => {
   const [stations, setStations] = useState([]);
@@ -19,7 +19,6 @@ const RadioPage = ({ countryData, onBack }) => {
         const response = await axios.get(`https://at1.api.radio-browser.info/json/stations/bycountrycodeexact/${countryCode}`);
         let fetchedStations = response.data;
 
-        // "votes" 기준으로 내림차순 정렬
         fetchedStations.sort((a, b) => b.votes - a.votes);
 
         if (fetchedStations.length > 21) {
@@ -53,8 +52,8 @@ const RadioPage = ({ countryData, onBack }) => {
   }, [volume]);
 
   const startRotationAnimation = () => {
-    let speed = 100; // Initial speed
-    const decay = 0.98; // Decay factor
+    let speed = 100;
+    const decay = 0.98;
 
     const animate = () => {
       setRotation((prevRotation) => prevRotation + speed);
@@ -74,12 +73,12 @@ const RadioPage = ({ countryData, onBack }) => {
   }, []);
 
   const handleMouseDown = (e) => {
-    cancelAnimationFrame(animationRef.current); // Stop animation on drag
+    cancelAnimationFrame(animationRef.current);
     const startX = e.clientX;
 
     const handleMouseMove = (moveEvent) => {
       const deltaX = moveEvent.clientX - startX;
-      const newRotation = rotation + deltaX / 5; // Adjust the division factor to control sensitivity
+      const newRotation = rotation + deltaX / 5;
       setRotation(newRotation);
     };
 
@@ -97,26 +96,9 @@ const RadioPage = ({ countryData, onBack }) => {
     onBack();
   };
 
-  const cardStyle = {
-    position: 'absolute',
-    width: '10vw',
-    height: '10vw',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#f0f0f0',
-    borderRadius: '10px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-    transformOrigin: 'center', // Add transform origin
-  };
-
-  const textStyle = {
-    transform: 'rotate(90deg)',
-  };
-
-  const renderCards = () => {
-    const radius = (window.innerHeight * 0.4) / window.innerHeight * 70; // Adjust the radius based on window height
-    const cards = [];
+  const renderStationNames = () => {
+    const radius = (window.innerHeight * 0.4) / window.innerHeight * 90;
+    const stationsElements = [];
     let closestIndex = 0;
     let minDifference = Infinity;
 
@@ -124,27 +106,30 @@ const RadioPage = ({ countryData, onBack }) => {
       const angle = (i / 21) * 2 * Math.PI + (rotation * Math.PI / 180);
       const x = radius * Math.cos(angle);
       const y = radius * Math.sin(angle);
-      const cardRotation = (angle * 180) / Math.PI; // Convert radians to degrees
+      const textRotation = (angle * 180) / Math.PI;
 
-      const normalizedAngle = ((((angle + Math.PI) % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI)) - Math.PI; // Map angle to the range [-Math.PI, Math.PI]
+      const normalizedAngle = ((((angle + Math.PI) % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI)) - Math.PI;
       const difference = Math.abs(normalizedAngle + Math.PI / 2);
       if (difference < minDifference) {
         minDifference = difference;
         closestIndex = i;
       }
 
-      cards.push(
-        <div key={i}>
-          <div
-            style={{
-              ...cardStyle,
-              transform: `translate(${x}vw, ${y}vw) translate(-50%, -50%) rotate(${cardRotation}deg)`,
-            }}
-          >
-            <div style={textStyle}>
-              {stations[i]?.name || ''}
-            </div>
-          </div>
+      stationsElements.push(
+        <div key={i}
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: `translate(${x}vw, ${y}vw) translate(-50%, -50%) rotate(${textRotation + 90}deg)`,
+            fontFamily: 'Roboto',
+            color: 'white',
+            fontSize: '1.0vw', // Increased font size
+            width: '130px', // Increased width
+            textAlign: 'center' // Center align the text
+          }}
+        >
+          {stations[i]?.name || 'Loading...'}
         </div>
       );
     }
@@ -153,7 +138,7 @@ const RadioPage = ({ countryData, onBack }) => {
       setCurrentStation(stations[closestIndex]);
     }
 
-    return cards;
+    return stationsElements;
   };
 
   return (
@@ -184,7 +169,50 @@ const RadioPage = ({ countryData, onBack }) => {
           cursor: 'grab',
         }}
       >
-        {renderCards()}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-45vw', // Adjust the position as needed
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 10,
+          }}
+        >
+          <FaCaretDown style={{
+            width: '2vw',
+            color: '#AE0E36', // 와인색 (Burgundy)
+          }}
+        />
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            width: '90vw',
+            height: '90vw',
+            bottom: '0%',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, #444 10%, #333 40%, #111 70%)',
+            zIndex: -2,
+            top: '50%', // Adjust this value to move the circle up or down
+            left: '50%', // Adjust this value to move the circle left or right
+            transform: 'translate(-50%, -50%)',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            width: '30vw',
+            height: '30vw',
+            bottom: '0%',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, #444 10%, #333 40%, #111 70%)',
+            zIndex: -1,
+            top: '50%', // Adjust this value to move the circle up or down
+            left: '50%', // Adjust this value to move the circle left or right
+            transform: 'translate(-50%, -50%)',
+          }}
+        />
+        {renderStationNames()}
         <div
           style={{
             position: 'absolute',
@@ -195,7 +223,6 @@ const RadioPage = ({ countryData, onBack }) => {
             color: 'black',
           }}
         >
-          <FaCaretUp style={{ height: '500px' }} />
         </div>
       </div>
     </div>
