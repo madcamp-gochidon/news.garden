@@ -3,7 +3,6 @@ import { Container, Grid, Typography, Box } from '@mui/material';
 import { styled } from '@mui/system';
 import GossipPage from './pages/GossipPage';
 import PaperPage from './pages/PaperPage';
-import PicturePage from './pages/PicturePage';
 import RadioPage from './pages/RadioPage';
 import MediaPage from './pages/MediaPage';
 
@@ -55,8 +54,6 @@ const CountryView = ({ countryData, onClose }) => {
         return <GossipPage countryData={countryData} onBack={() => setCurrentPage('main')} />;
       case 'paper':
         return <PaperPage countryData={countryData} onBack={() => setCurrentPage('main')} />;
-      // case 'picture':
-      //   return <PicturePage countryData={countryData} onBack={() => setCurrentPage('main')} />;
       case 'radio':
         return <RadioPage countryData={countryData} onBack={() => setCurrentPage('main')} />;
       case 'media':
@@ -79,13 +76,6 @@ const CountryView = ({ countryData, onClose }) => {
                   </PageNameBox>
                 </StyledLink>
               </GridItem>
-              {/* <GridItem item xs={2}>
-                <StyledLink onClick={() => setCurrentPage('picture')}>
-                  <PageNameBox>
-                    <Typography variant="h3" className="page-name">Picture</Typography>
-                  </PageNameBox>
-                </StyledLink>
-              </GridItem> */}
               <GridItem item xs={3}>
                 <StyledLink onClick={() => setCurrentPage('radio')}>
                   <PageNameBox>

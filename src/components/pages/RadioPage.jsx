@@ -73,29 +73,21 @@ const RadioPage = ({ countryData, onBack }) => {
     onBack();
   };
 
-  const togglePlayPause = () => {
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
   const cardStyle = {
     position: 'absolute',
-    width: '10vw',
-    height: '10vw',
+    width: '15vw',
+    height: '15vw',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#f0f0f0',
     borderRadius: '10px',
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+    transformOrigin: 'center', // Add transform origin
   };
 
   const textStyle = {
-    transform: 'rotate(180deg)',
+    transform: 'rotate(90deg)',
   };
 
   const renderCards = () => {
@@ -110,23 +102,24 @@ const RadioPage = ({ countryData, onBack }) => {
       const y = radius * Math.sin(angle);
       const cardRotation = (angle * 180) / Math.PI; // Convert radians to degrees
 
-      const normalizedAngle = ((((angle + Math.PI) % (2 * Math.PI)) + (2 * Math.PI) ) % (2 * Math.PI)) - Math.PI; // Map angle to the range [-Math.PI, Math.PI]
-      const difference = Math.abs(normalizedAngle - Math.PI);
+      const normalizedAngle = ((((angle + Math.PI) % (2 * Math.PI)) + (2 * Math.PI)) % (2 * Math.PI)) - Math.PI; // Map angle to the range [-Math.PI, Math.PI]
+      const difference = Math.abs(normalizedAngle + Math.PI / 2);
       if (difference < minDifference) {
         minDifference = difference;
         closestIndex = i;
       }
 
       cards.push(
-        <div
-          key={i}
-          style={{
-            ...cardStyle,
-            transform: `translate(${x}vh, ${y}vh) rotate(${cardRotation}deg)`,
-          }}
-        >
-          <div style={textStyle}>
-            {stations[i]?.name || 'Station'}
+        <div key={i}>
+          <div
+            style={{
+              ...cardStyle,
+              transform: `translate(${x}vw, ${y}vw) translate(-50%, -50%) rotate(${cardRotation}deg)`,
+            }}
+          >
+            <div style={textStyle}>
+              {stations[i]?.name || 'Station'}
+            </div>
           </div>
         </div>
       );
@@ -135,22 +128,6 @@ const RadioPage = ({ countryData, onBack }) => {
     if (stations[closestIndex] && currentStation !== stations[closestIndex]) {
       setCurrentStation(stations[closestIndex]);
     }
-
-    // P점에서 왼쪽으로 radius / 4 길이만큼의 선 추가
-    const lineLength = radius / 4;
-    cards.push(
-      <div
-        key="line"
-        style={{
-          position: 'absolute',
-          width: `50vh`,
-          height: '2px',
-          backgroundColor: 'red',
-          transform: `translate(0%, 50%) translateX(-${radius}vh) rotate(0deg)`,
-          transformOrigin: 'top',
-        }}
-      />
-    );
 
     return cards;
   };
@@ -173,33 +150,12 @@ const RadioPage = ({ countryData, onBack }) => {
         x
       </div>
       <div
-        style={{
-          position: 'absolute',
-          top: '50%',
-          left: '20px',
-          transform: 'translateY(-50%)',
-        }}
-      >
-        <button onClick={togglePlayPause} style={{ display: 'block', marginBottom: '10px' }}>
-          {isPlaying ? 'Pause' : 'Play'}
-        </button>
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={volume}
-          onChange={(e) => setVolume(e.target.value)}
-          style={{ display: 'block', width: '200px' }}
-        />
-      </div>
-      <div
         ref={circleRef}
         onMouseDown={handleMouseDown}
         style={{
           position: 'absolute',
-          top: '50%',
-          right: '0%',
+          bottom: '0%',
+          right: '50%',
           width: '0',
           height: '0',
           transform: 'translate(-50%, -50%)',
@@ -207,6 +163,17 @@ const RadioPage = ({ countryData, onBack }) => {
         }}
       >
         {renderCards()}
+        <div
+          style={{
+            position: 'absolute',
+            width: `2px`,
+            height: '50vw',
+            backgroundColor: 'red',
+            transformOrigin: 'bottom',
+            bottom: '0%',
+            left: '50%',
+          }}
+        />
       </div>
     </div>
   );

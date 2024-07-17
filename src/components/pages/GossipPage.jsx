@@ -4,16 +4,28 @@ import WordCloud from 'wordcloud';
 const GossipPage = ({ countryData, onBack }) => {
   const canvasRef = useRef(null);
   const tooltipRef = useRef(null);
-  const containerRef = useRef(null); // 부모 div 요소에 대한 ref
+  const containerRef = useRef(null);
   const [wordData, setWordData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
+  const colorPalettes = [
+    ['#EB3D3E', '#F3F8EE', '#B7DBDC', '#3B5E76', '#20334D'], // 두 번째 색상표
+    ['#2A4B40', '#267671', '#E0BE4B', '#F3A54D', '#E96E50'], // 세 번째 색상표
+    ['#95C4D8', '#53B8CE', '#2E718A', '#EFAB3A', '#F3861E'], // 네 번째 색상표
+    ['#5D5C36', '#8C6E42', '#CE9C58'], // 다섯 번째 색상표
+    ['#D5B4DA', '#E79DC4', '#F4AFCC', '#92BEEA', '#5BA9DD'], // 여섯 번째 색상표
+    ['#EFAB9A', '#E7B2AD', '#D18D8E', '#877B84'], // 일곱 번째 색상표
+    ['#101319', '#273040', '#FFA000', '#E1E1E1', '#FFFFFF'], // 아홉 번째 색상표
+    ['#041E3C', '#003973', '#00639A', '#00A1D4', '#8ED6EA'], // 열 번째 색상표
+    ['#2A5D39', '#4B7045', '#6D8A4D', '#E9E6D1', '#B2493F'], // 열한 번째 색상표
+    ['#B6B39B', '#BDC2A8', '#758A76', '#3D5648'], // 열두 번째 색상표
+  ];
   useEffect(() => {
     const updateCanvasSize = () => {
       if (containerRef.current) {
-        const width = containerRef.current.offsetWidth * 0.8; // 부모 div 폭의 80%
-        const height = containerRef.current.offsetHeight * 0.7; // 부모 div 높이의 70%
+        const width = containerRef.current.offsetWidth * 0.9; // 부모 div 폭의 90%
+        const height = containerRef.current.offsetHeight * 0.9; // 부모 div 높이의 90%
         setCanvasSize({ width, height });
       }
     };
@@ -61,12 +73,17 @@ const GossipPage = ({ countryData, onBack }) => {
       const widthFactor = canvasSize.width / 800; // 기준 크기 800을 사용
       const heightFactor = canvasSize.height / 600; // 기준 크기 600을 사용
 
+      // 랜덤 색상표 선택
+      const selectedPalette = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
+
       WordCloud(canvas, {
         list: wordData,
         gridSize: 4,
         weightFactor: (size) => Math.log2(size) * 1.5 * widthFactor * heightFactor, // 페이지 크기에 연동
-        fontFamily: 'Times, serif',
-        color: 'random-dark',
+        fontFamily: 'Arial, sans-serif', // 원하는 폰트로 변경
+        color: (word, weight, fontSize, distance, theta) => {
+          return selectedPalette[Math.floor(Math.random() * selectedPalette.length)];
+        },
         rotateRatio: 0.5,
         rotationSteps: 2,
         shape: 'circle',
@@ -85,7 +102,7 @@ const GossipPage = ({ countryData, onBack }) => {
     <div id="gossip-page" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
       <div
         id="wordcloud-container"
-        ref={containerRef} // 부모 div 요소에 ref 설정
+        ref={containerRef}
         style={{
           display: 'flex',
           justifyContent: 'center',
@@ -122,7 +139,7 @@ const GossipPage = ({ countryData, onBack }) => {
         style={{
           position: 'absolute',
           top: '20px',
-          right: '40px', // 우상단으로 위치 조정
+          right: '40px',
           fontSize: '30px',
           cursor: 'pointer',
         }}
