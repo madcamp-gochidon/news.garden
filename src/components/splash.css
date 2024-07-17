@@ -15,7 +15,8 @@
 }
 
 .splash h1 {
-    font-size: 3rem; /* 글자 크기 조절 */
+    font-size: 4rem; /* 글자 크기 조절 */
+    height: 40%;
     color: #333333; /* 글자 색상 설정 */
     margin: 0;
 }
