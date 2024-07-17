@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import WordCloud from 'wordcloud';
+import '/home/ubuntu/news.garden/src/components/WordPage.css'; // CSS 파일 추가
+
 
 const WordPage = ({ countryData, onBack }) => {
   const canvasRef = useRef(null);
@@ -11,23 +13,23 @@ const WordPage = ({ countryData, onBack }) => {
   const [wordPositions, setWordPositions] = useState([]);
 
   const colorPalettes = [
-    ['#EB3D3E', '#B7DBDC', '#3B5E76', '#20334D'], // 두 번째 색상표
-    ['#2A4B40', '#267671', '#E0BE4B', '#F3A54D', '#E96E50'], // 세 번째 색상표
-    ['#95C4D8', '#53B8CE', '#2E718A', '#EFAB3A', '#F3861E'], // 네 번째 색상표
-    ['#5D5C36', '#8C6E42', '#CE9C58'], // 다섯 번째 색상표
-    ['#D5B4DA', '#E79DC4', '#F4AFCC', '#92BEEA', '#5BA9DD'], // 여섯 번째 색상표
-    ['#EFAB9A', '#E7B2AD', '#D18D8E', '#877B84'], // 일곱 번째 색상표
-    ['#101319', '#273040', '#FFA000', '#E1E1E1', '#FFFFFF'], // 아홉 번째 색상표
-    ['#041E3C', '#003973', '#00639A', '#00A1D4', '#8ED6EA'], // 열 번째 색상표
-    ['#2A5D39', '#4B7045', '#6D8A4D', '#B2493F'], // 열한 번째 색상표
-    ['#B6B39B', '#BDC2A8', '#758A76', '#3D5648'], // 열두 번째 색상표
+    ['#EB3D3E', '#B7DBDC', '#3B5E76', '#20334D'],
+    ['#2A4B40', '#267671', '#E0BE4B', '#F3A54D', '#E96E50'],
+    ['#95C4D8', '#53B8CE', '#2E718A', '#EFAB3A', '#F3861E'],
+    ['#5D5C36', '#8C6E42', '#CE9C58'],
+    ['#D5B4DA', '#E79DC4', '#F4AFCC', '#92BEEA', '#5BA9DD'],
+    ['#EFAB9A', '#E7B2AD', '#D18D8E', '#877B84'],
+    ['#101319', '#273040', '#FFA000', '#E1E1E1', '#FFFFFF'],
+    ['#041E3C', '#003973', '#00639A', '#00A1D4', '#8ED6EA'],
+    ['#2A5D39', '#4B7045', '#6D8A4D', '#B2493F'],
+    ['#B6B39B', '#BDC2A8', '#758A76', '#3D5648'],
   ];
 
   useEffect(() => {
     const updateCanvasSize = () => {
       if (containerRef.current) {
-        const width = containerRef.current.offsetWidth * 0.9; // 부모 div 폭의 90%
-        const height = containerRef.current.offsetHeight * 0.9; // 부모 div 높이의 90%
+        const width = containerRef.current.offsetWidth * 0.9;
+        const height = containerRef.current.offsetHeight * 0.9;
         setCanvasSize({ width, height });
       }
     };
@@ -63,8 +65,8 @@ const WordPage = ({ countryData, onBack }) => {
 
       function showTooltip(item, dimension, event) {
         tooltipRef.current.innerText = item[0];
-        tooltipRef.current.style.left = `${event.pageX}px`;
-        tooltipRef.current.style.top = `${event.pageY}px`;
+        tooltipRef.current.style.left = `${event.pageX + 10}px`; // 마우스 커서 오른쪽으로 10px
+        tooltipRef.current.style.top = `${event.pageY + 10}px`; // 마우스 커서 아래로 10px
         tooltipRef.current.style.visibility = 'visible';
       }
 
@@ -72,17 +74,16 @@ const WordPage = ({ countryData, onBack }) => {
         tooltipRef.current.style.visibility = 'hidden';
       }
 
-      const widthFactor = canvasSize.width / 600; // 기준 크기 600을 사용
-      const heightFactor = canvasSize.height / 400; // 기준 크기 400을 사용
+      const widthFactor = canvasSize.width / 600;
+      const heightFactor = canvasSize.height / 400;
 
-      // 랜덤 색상표 선택
       const selectedPalette = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
 
       WordCloud(canvas, {
         list: wordData,
         gridSize: 15,
-        weightFactor: (size) => (size) * 0.03 * widthFactor * heightFactor, // 페이지 크기에 연동
-        fontFamily: 'Arial, sans-serif', // 원하는 폰트로 변경
+        weightFactor: (size) => (size) * 0.03 * widthFactor * heightFactor,
+        fontFamily: 'Roboto',
         color: (word, weight, fontSize, distance, theta) => {
           return selectedPalette[Math.floor(Math.random() * selectedPalette.length)];
         },
@@ -90,7 +91,6 @@ const WordPage = ({ countryData, onBack }) => {
         rotationSteps: 2,
         shape: 'circle',
         hover: (item, dimension, event) => {
-          showTooltip(item, dimension, event);
           wordPositionsTemp.push({
             word: item[0],
             x: dimension.x,
@@ -105,29 +105,36 @@ const WordPage = ({ countryData, onBack }) => {
           const query = item[0];
           const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
           window.open(url, '_blank');
-        }
+        },
+        drawOutOfBound: false,
+        shrinkToFit: true,
+        backgroundColor: '#ffffff',
+        classes: ['fade-in'], // Apply animation class to words
       });
 
       setWordPositions(wordPositionsTemp);
 
-      // 커서가 올라갈 때 포인터로 변경
       canvas.addEventListener('mousemove', (event) => {
         const rect = canvas.getBoundingClientRect();
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
-        const wordHovered = wordPositions.some(pos => 
+        const wordHovered = wordPositionsTemp.find(pos => 
           x >= pos.x && x <= pos.x + pos.width && 
           y >= pos.y && y <= pos.y + pos.height
         );
-        canvas.style.cursor = wordHovered ? 'pointer' : 'default';
-        if (!wordHovered) {
+
+        if (wordHovered) {
+          canvas.style.cursor = 'pointer';
+          showTooltip({ 0: wordHovered.word }, wordHovered, event);
+        } else {
+          canvas.style.cursor = 'default';
           hideTooltip();
         }
       });
 
       return () => {
         context.clearRect(0, 0, canvas.width, canvas.height);
-        setWordPositions([]); // 컴포넌트 언마운트 시 위치 초기화
+        setWordPositions([]);
       };
     }
   }, [loading, wordData, canvasSize]);
@@ -149,7 +156,7 @@ const WordPage = ({ countryData, onBack }) => {
           <div>Loading...</div>
         ) : (
           <>
-            <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} style={{ backgroundColor: 'transparent' }}></canvas>
+            <canvas ref={canvasRef} width={canvasSize.width} height={canvasSize.height} className="wordcloud-canvas"></canvas>
             <div
               className="tooltip"
               ref={tooltipRef}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { FaCaretUp } from 'react-icons/fa'; // 아이콘 추가
 
 const RadioPage = ({ countryData, onBack }) => {
   const [stations, setStations] = useState([]);
@@ -98,8 +99,8 @@ const RadioPage = ({ countryData, onBack }) => {
 
   const cardStyle = {
     position: 'absolute',
-    width: '15vw',
-    height: '15vw',
+    width: '10vw',
+    height: '10vw',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -114,7 +115,7 @@ const RadioPage = ({ countryData, onBack }) => {
   };
 
   const renderCards = () => {
-    const radius = (window.innerHeight * 0.4) / window.innerHeight * 100; // Adjust the radius based on window height
+    const radius = (window.innerHeight * 0.4) / window.innerHeight * 70; // Adjust the radius based on window height
     const cards = [];
     let closestIndex = 0;
     let minDifference = Infinity;
@@ -187,14 +188,15 @@ const RadioPage = ({ countryData, onBack }) => {
         <div
           style={{
             position: 'absolute',
-            width: `2px`,
-            height: '50vw',
-            backgroundColor: 'red',
-            transformOrigin: 'bottom',
             bottom: '0%',
             left: '50%',
+            transform: 'translate(-50%, 50%)',
+            fontSize: '5vw',
+            color: 'black',
           }}
-        />
+        >
+          <FaCaretUp style={{ height: '500px' }} />
+        </div>
       </div>
     </div>
   );

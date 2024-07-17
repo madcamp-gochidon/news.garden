@@ -5,6 +5,7 @@ import WordPage from './pages/WordPage';
 import PaperPage from './pages/PaperPage';
 import RadioPage from './pages/RadioPage';
 import MediaPage from './pages/MediaPage';
+import { useResizeDetector } from 'react-resize-detector';
 
 const MainContainer = styled(Container)`
   width: 100vw;
@@ -48,6 +49,10 @@ const CloseButton = styled(Box)`
 const CountryView = ({ countryData, onClose }) => {
   const [currentPage, setCurrentPage] = useState('main');
 
+  const { width, height, ref } = useResizeDetector();
+
+  const fontSize = Math.min(width, height) / 20; // window 크기에 비례하여 글자 크기 설정
+
   const renderPage = () => {
     switch (currentPage) {
       case 'word':
@@ -65,28 +70,36 @@ const CountryView = ({ countryData, onClose }) => {
               <GridItem item xs={3}>
                 <StyledLink onClick={() => setCurrentPage('word')}>
                   <PageNameBox>
-                    <Typography variant="h3" className="page-name">Word</Typography>
+                    <Typography variant="h3" className="page-name" style={{ fontSize }}>
+                      Word
+                    </Typography>
                   </PageNameBox>
                 </StyledLink>
               </GridItem>
               <GridItem item xs={3}>
                 <StyledLink onClick={() => setCurrentPage('paper')}>
                   <PageNameBox>
-                    <Typography variant="h3" className="page-name">Paper</Typography>
+                    <Typography variant="h3" className="page-name" style={{ fontSize }}>
+                      Paper
+                    </Typography>
                   </PageNameBox>
                 </StyledLink>
               </GridItem>
               <GridItem item xs={3}>
                 <StyledLink onClick={() => setCurrentPage('radio')}>
                   <PageNameBox>
-                    <Typography variant="h3" className="page-name">Radio</Typography>
+                    <Typography variant="h3" className="page-name" style={{ fontSize }}>
+                      Radio
+                    </Typography>
                   </PageNameBox>
                 </StyledLink>
               </GridItem>
               <GridItem item xs={3}>
                 <StyledLink onClick={() => setCurrentPage('media')}>
                   <PageNameBox>
-                    <Typography variant="h3" className="page-name">Media</Typography>
+                    <Typography variant="h3" className="page-name" style={{ fontSize }}>
+                      Media
+                    </Typography>
                   </PageNameBox>
                 </StyledLink>
               </GridItem>
@@ -97,8 +110,8 @@ const CountryView = ({ countryData, onClose }) => {
   };
 
   return (
-    <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
-      {currentPage == 'main' && (
+    <div ref={ref} style={{ width: '100vw', height: '100vh', position: 'relative' }}>
+      {currentPage === 'main' && (
         <CloseButton onClick={onClose}>
           x
         </CloseButton>

@@ -11,7 +11,8 @@ const Globe = ({ onCountryClick, isInitial }) => {
     const svg = d3.select(ref.current).append("svg")
       .attr("width", '100%')
       .attr("height", '100%')
-      .attr("viewBox", `0 0 ${width} ${height}`);
+      .attr("viewBox", `0 0 ${width} ${height}`)
+      .style("background-color", "black"); // 배경색을 검정색으로 설정
 
     const g = svg.append("g");
 
@@ -43,11 +44,15 @@ const Globe = ({ onCountryClick, isInitial }) => {
 
             console.log(dx, dy, x, y, scale, translate);
 
+            svg.transition().duration(1500)
+            .style("background-color", "white");
+
             g.transition().duration(1500)
               .attr("transform", `translate(${translate[0]}, ${translate[1]}) scale(${scale})`)
               .on("end", () => {
-                onCountryClick(d);
-                g.style("visibility", "hidden");
+                // 배경색을 서서히 흰색으로 변경
+                  onCountryClick(d);
+                  g.style("visibility", "hidden");
               });
           });
 
@@ -98,25 +103,29 @@ const Globe = ({ onCountryClick, isInitial }) => {
 
     if (isInitial) {
       // Add rotation animation
-      let rotationSpeed = 100; // initial speed
+      let rotationSpeed = 30; // initial speed
       const rotate = () => {
         if (!rotationActive) return true; // Stop animation if rotationActive is false
         const rotate = projection.rotate();
-        rotationSpeed *= 0.98; // gradually slow down
-        if (rotationSpeed < 0.001) return true; // stop animation when speed is very low
+        if (rotationSpeed > 1) {
+          rotationSpeed *= 0.98; // gradually slow down
+        }
+        // if (rotationSpeed < 0.001) return true; // stop animation when speed is very low
         projection.rotate([rotate[0] + rotationSpeed, rotate[1]]);
         g.selectAll("path").attr("d", path);
         return false;
       };
 
       // Use d3.interval to stop rotation after some time
-      const interval = d3.interval(() => {
-        if (rotate()) {
-          interval.stop(); // Stop the interval if rotation animation is finished
-        }
-      }, 20);
-    }
+      const interval = d3.interval(rotate, 20);
 
+      // const interval = d3.interval(() => {
+      //   if (rotate()) {
+      //     interval.stop(); // Stop the interval if rotation animation is finished
+      //   }
+      // }, 20);
+    }
+ 
     return () => {
       window.removeEventListener('resize', handleResize);
     };
