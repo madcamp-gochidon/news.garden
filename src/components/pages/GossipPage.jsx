@@ -10,7 +10,7 @@ const GossipPage = ({ countryData, onBack }) => {
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   const colorPalettes = [
-    ['#EB3D3E', '#F3F8EE', '#B7DBDC', '#3B5E76', '#20334D'], // 두 번째 색상표
+    ['#EB3D3E', '#B7DBDC', '#3B5E76', '#20334D'], // 두 번째 색상표
     ['#2A4B40', '#267671', '#E0BE4B', '#F3A54D', '#E96E50'], // 세 번째 색상표
     ['#95C4D8', '#53B8CE', '#2E718A', '#EFAB3A', '#F3861E'], // 네 번째 색상표
     ['#5D5C36', '#8C6E42', '#CE9C58'], // 다섯 번째 색상표
@@ -18,9 +18,10 @@ const GossipPage = ({ countryData, onBack }) => {
     ['#EFAB9A', '#E7B2AD', '#D18D8E', '#877B84'], // 일곱 번째 색상표
     ['#101319', '#273040', '#FFA000', '#E1E1E1', '#FFFFFF'], // 아홉 번째 색상표
     ['#041E3C', '#003973', '#00639A', '#00A1D4', '#8ED6EA'], // 열 번째 색상표
-    ['#2A5D39', '#4B7045', '#6D8A4D', '#E9E6D1', '#B2493F'], // 열한 번째 색상표
+    ['#2A5D39', '#4B7045', '#6D8A4D', '#B2493F'], // 열한 번째 색상표
     ['#B6B39B', '#BDC2A8', '#758A76', '#3D5648'], // 열두 번째 색상표
   ];
+
   useEffect(() => {
     const updateCanvasSize = () => {
       if (containerRef.current) {
@@ -78,8 +79,8 @@ const GossipPage = ({ countryData, onBack }) => {
 
       WordCloud(canvas, {
         list: wordData,
-        gridSize: 4,
-        weightFactor: (size) => Math.log2(size) * 1.5 * widthFactor * heightFactor, // 페이지 크기에 연동
+        gridSize: 15,
+        weightFactor: (size) => Math.pow(size, 2) * widthFactor * heightFactor, // 단어 크기 차이를 극명하게
         fontFamily: 'Arial, sans-serif', // 원하는 폰트로 변경
         color: (word, weight, fontSize, distance, theta) => {
           return selectedPalette[Math.floor(Math.random() * selectedPalette.length)];

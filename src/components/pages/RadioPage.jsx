@@ -9,6 +9,7 @@ const RadioPage = ({ countryData, onBack }) => {
   const [volume, setVolume] = useState(1);
   const audioRef = useRef(new Audio());
   const circleRef = useRef(null);
+  const animationRef = useRef(null);
 
   useEffect(() => {
     const fetchStations = async () => {
@@ -50,7 +51,29 @@ const RadioPage = ({ countryData, onBack }) => {
     audioRef.current.volume = volume;
   }, [volume]);
 
+  const startRotationAnimation = () => {
+    let speed = 100; // Initial speed
+    const decay = 0.98; // Decay factor
+
+    const animate = () => {
+      setRotation((prevRotation) => prevRotation + speed);
+      speed *= decay;
+
+      if (speed > 0.01) {
+        animationRef.current = requestAnimationFrame(animate);
+      }
+    };
+
+    animationRef.current = requestAnimationFrame(animate);
+  };
+
+  useEffect(() => {
+    startRotationAnimation();
+    return () => cancelAnimationFrame(animationRef.current);
+  }, []);
+
   const handleMouseDown = (e) => {
+    cancelAnimationFrame(animationRef.current); // Stop animation on drag
     const startX = e.clientX;
 
     const handleMouseMove = (moveEvent) => {
@@ -118,7 +141,7 @@ const RadioPage = ({ countryData, onBack }) => {
             }}
           >
             <div style={textStyle}>
-              {stations[i]?.name || 'Station'}
+              {stations[i]?.name || ''}
             </div>
           </div>
         </div>
@@ -134,8 +157,6 @@ const RadioPage = ({ countryData, onBack }) => {
 
   return (
     <div style={{ textAlign: 'center', padding: '20px', height: '100vh', position: 'relative' }}>
-      <h1>Radio Page</h1>
-      <p>Country: {countryData.properties.name}</p>
       <div
         id="back-button"
         style={{
