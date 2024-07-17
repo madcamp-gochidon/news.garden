@@ -4,6 +4,10 @@ import axios from 'axios';
 const RadioPage = ({ countryData, onBack }) => {
   const [stations, setStations] = useState([]);
   const [rotation, setRotation] = useState(0);
+  const [currentStation, setCurrentStation] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(1);
+  const audioRef = useRef(new Audio());
   const circleRef = useRef(null);
 
   useEffect(() => {
@@ -34,6 +38,18 @@ const RadioPage = ({ countryData, onBack }) => {
     fetchStations();
   }, [countryData.properties.iso_a2, countryData.properties.iso_a3]);
 
+  useEffect(() => {
+    if (currentStation) {
+      audioRef.current.src = currentStation.url_resolved;
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  }, [currentStation]);
+
+  useEffect(() => {
+    audioRef.current.volume = volume;
+  }, [volume]);
+
   const handleMouseDown = (e) => {
     const startX = e.clientX;
 
@@ -50,6 +66,15 @@ const RadioPage = ({ countryData, onBack }) => {
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  const togglePlayPause = () => {
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
   };
 
   const cardStyle = {
@@ -71,11 +96,21 @@ const RadioPage = ({ countryData, onBack }) => {
   const renderCards = () => {
     const radius = (window.innerHeight * 0.4) / window.innerHeight * 100; // Adjust the radius based on window height
     const cards = [];
+    let closestIndex = 0;
+    let minDifference = Infinity;
+
     for (let i = 0; i < 21; i++) {
       const angle = (i / 21) * 2 * Math.PI + (rotation * Math.PI / 180);
       const x = radius * Math.cos(angle);
       const y = radius * Math.sin(angle);
       const cardRotation = (angle * 180) / Math.PI; // Convert radians to degrees
+
+      const difference = Math.abs(angle - Math.PI);
+      if (difference < minDifference) {
+        minDifference = difference;
+        closestIndex = i;
+      }
+
       cards.push(
         <div
           key={i}
@@ -91,6 +126,12 @@ const RadioPage = ({ countryData, onBack }) => {
       );
     }
 
+    if (stations[closestIndex] && currentStation !== stations[closestIndex]) {
+      setCurrentStation(stations[closestIndex]);
+    }
+
+    // P점에서 왼쪽으로 radius / 4 길이만큼의 선 추가
+    const lineLength = radius / 4;
     cards.push(
       <div
         key="line"
@@ -124,6 +165,27 @@ const RadioPage = ({ countryData, onBack }) => {
         onClick={onBack}
       >
         x
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          top: '50%',
+          left: '20px',
+          transform: 'translateY(-50%)',
+        }}
+      >
+        <button onClick={togglePlayPause} style={{ display: 'block', marginBottom: '10px' }}>
+          {isPlaying ? 'Pause' : 'Play'}
+        </button>
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={volume}
+          onChange={(e) => setVolume(e.target.value)}
+          style={{ display: 'block', width: '200px' }}
+        />
       </div>
       <div
         ref={circleRef}
