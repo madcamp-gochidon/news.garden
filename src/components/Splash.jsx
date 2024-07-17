@@ -13,7 +13,9 @@ const Splash = ({ onAnimationEnd }) => {
     <div
       className={`splash ${fade ? 'fade-out' : ''}`}
       onTransitionEnd={onAnimationEnd}
-    ></div>
+    >
+      <h1>news.garden</h1>
+    </div>
   );
 };
 

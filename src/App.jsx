@@ -8,11 +8,13 @@ import './App.css';
 function App() {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [showSplash, setShowSplash] = useState(true); // 스플래쉬 상태 추가
+  const [isInitial, setisInitial] = useState(true);
   const globeRef = useRef(null);
 
   const handleCountryClick = (countryData) => {
     console.log("Country clicked:", countryData.properties.name);
     setSelectedCountry(countryData);
+    setisInitial(false);
   };
 
   const handleCloseCountryView = () => {
@@ -42,7 +44,7 @@ function App() {
       ) : (
         selectedCountry ? 
           <CountryView countryData={selectedCountry} onClose={handleCloseCountryView} /> : 
-          <Globe onCountryClick={handleCountryClick} ref={globeRef} />
+          <Globe onCountryClick={handleCountryClick} ref={globeRef} isInitial={isInitial} />
       )}
     </div>
   );

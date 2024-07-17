@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-const Globe = ({ onCountryClick }) => {
+const Globe = ({ onCountryClick, isInitial }) => {
   const ref = useRef();
 
   useEffect(() => {
@@ -15,10 +15,12 @@ const Globe = ({ onCountryClick }) => {
 
     const g = svg.append("g");
 
+    const initialRotation = [10, 30];
     const projection = d3.geoOrthographic()
       .scale(Math.min(width, height) / 2 - 50)
       .translate([width / 2, height / 2])
       .clipAngle(90);
+      // .rotate(initialRotation);
 
     const path = d3.geoPath().projection(projection);
 
@@ -57,7 +59,12 @@ const Globe = ({ onCountryClick }) => {
           .attr("fill", "none");
       });
 
+    let rotationActive = isInitial;
+
     const drag = d3.drag()
+      .on("start", () => {
+        rotationActive = false; // Stop rotation on drag start
+      })
       .on("drag", (event) => {
         const rotate = projection.rotate();
         const k = 90 / (2 * Math.PI);
@@ -89,12 +96,32 @@ const Globe = ({ onCountryClick }) => {
 
     window.addEventListener('resize', handleResize);
 
+    if (isInitial) {
+      // Add rotation animation
+      let rotationSpeed = 100; // initial speed
+      const rotate = () => {
+        if (!rotationActive) return true; // Stop animation if rotationActive is false
+        const rotate = projection.rotate();
+        rotationSpeed *= 0.98; // gradually slow down
+        if (rotationSpeed < 0.001) return true; // stop animation when speed is very low
+        projection.rotate([rotate[0] + rotationSpeed, rotate[1]]);
+        g.selectAll("path").attr("d", path);
+        return false;
+      };
+
+      // Use d3.interval to stop rotation after some time
+      const interval = d3.interval(() => {
+        if (rotate()) {
+          interval.stop(); // Stop the interval if rotation animation is finished
+        }
+      }, 20);
+    }
+
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [onCountryClick, ref]);
+  }, [onCountryClick, isInitial]);
 
- 
   return (
     <div id="globe-container" ref={ref} style={{ width: '100vw', height: '100vh', position: 'relative' }}>
       <div style={{ position: 'absolute', bottom: '20px', right: '20px', display: 'flex', flexDirection: 'column' }}>

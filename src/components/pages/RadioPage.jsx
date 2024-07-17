@@ -68,6 +68,11 @@ const RadioPage = ({ countryData, onBack }) => {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  const handleBackClick = () => {
+    audioRef.current.pause();
+    onBack();
+  };
+
   const togglePlayPause = () => {
     if (isPlaying) {
       audioRef.current.pause();
@@ -105,7 +110,8 @@ const RadioPage = ({ countryData, onBack }) => {
       const y = radius * Math.sin(angle);
       const cardRotation = (angle * 180) / Math.PI; // Convert radians to degrees
 
-      const difference = Math.abs(angle - Math.PI);
+      const normalizedAngle = ((((angle + Math.PI) % (2 * Math.PI)) + (2 * Math.PI) ) % (2 * Math.PI)) - Math.PI; // Map angle to the range [-Math.PI, Math.PI]
+      const difference = Math.abs(normalizedAngle - Math.PI);
       if (difference < minDifference) {
         minDifference = difference;
         closestIndex = i;
@@ -162,7 +168,7 @@ const RadioPage = ({ countryData, onBack }) => {
           fontSize: '30px',
           cursor: 'pointer',
         }}
-        onClick={onBack}
+        onClick={handleBackClick}
       >
         x
       </div>

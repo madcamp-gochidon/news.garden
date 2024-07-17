@@ -55,8 +55,8 @@ const CountryView = ({ countryData, onClose }) => {
         return <GossipPage countryData={countryData} onBack={() => setCurrentPage('main')} />;
       case 'paper':
         return <PaperPage countryData={countryData} onBack={() => setCurrentPage('main')} />;
-      case 'picture':
-        return <PicturePage countryData={countryData} onBack={() => setCurrentPage('main')} />;
+      // case 'picture':
+      //   return <PicturePage countryData={countryData} onBack={() => setCurrentPage('main')} />;
       case 'radio':
         return <RadioPage countryData={countryData} onBack={() => setCurrentPage('main')} />;
       case 'media':
@@ -64,36 +64,36 @@ const CountryView = ({ countryData, onClose }) => {
       default:
         return (
           <MainContainer maxWidth={false}>
-            <Grid container columns={10} spacing={4}>
-              <GridItem item xs={2}>
+            <Grid container spacing={4}>
+              <GridItem item xs={3}>
                 <StyledLink onClick={() => setCurrentPage('gossip')}>
                   <PageNameBox>
                     <Typography variant="h3" className="page-name">Gossip</Typography>
                   </PageNameBox>
                 </StyledLink>
               </GridItem>
-              <GridItem item xs={2}>
+              <GridItem item xs={3}>
                 <StyledLink onClick={() => setCurrentPage('paper')}>
                   <PageNameBox>
                     <Typography variant="h3" className="page-name">Paper</Typography>
                   </PageNameBox>
                 </StyledLink>
               </GridItem>
-              <GridItem item xs={2}>
+              {/* <GridItem item xs={2}>
                 <StyledLink onClick={() => setCurrentPage('picture')}>
                   <PageNameBox>
                     <Typography variant="h3" className="page-name">Picture</Typography>
                   </PageNameBox>
                 </StyledLink>
-              </GridItem>
-              <GridItem item xs={2}>
+              </GridItem> */}
+              <GridItem item xs={3}>
                 <StyledLink onClick={() => setCurrentPage('radio')}>
                   <PageNameBox>
                     <Typography variant="h3" className="page-name">Radio</Typography>
                   </PageNameBox>
                 </StyledLink>
               </GridItem>
-              <GridItem item xs={2}>
+              <GridItem item xs={3}>
                 <StyledLink onClick={() => setCurrentPage('media')}>
                   <PageNameBox>
                     <Typography variant="h3" className="page-name">Media</Typography>
