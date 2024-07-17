@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Grid, Typography, Box } from '@mui/material';
 import { styled } from '@mui/system';
-import GossipPage from './pages/GossipPage';
+import WordPage from './pages/WordPage';
 import PaperPage from './pages/PaperPage';
 import RadioPage from './pages/RadioPage';
 import MediaPage from './pages/MediaPage';
@@ -50,8 +50,8 @@ const CountryView = ({ countryData, onClose }) => {
 
   const renderPage = () => {
     switch (currentPage) {
-      case 'gossip':
-        return <GossipPage countryData={countryData} onBack={() => setCurrentPage('main')} />;
+      case 'word':
+        return <WordPage countryData={countryData} onBack={() => setCurrentPage('main')} />;
       case 'paper':
         return <PaperPage countryData={countryData} onBack={() => setCurrentPage('main')} />;
       case 'radio':
@@ -63,9 +63,9 @@ const CountryView = ({ countryData, onClose }) => {
           <MainContainer maxWidth={false}>
             <Grid container spacing={4}>
               <GridItem item xs={3}>
-                <StyledLink onClick={() => setCurrentPage('gossip')}>
+                <StyledLink onClick={() => setCurrentPage('word')}>
                   <PageNameBox>
-                    <Typography variant="h3" className="page-name">Gossip</Typography>
+                    <Typography variant="h3" className="page-name">Word</Typography>
                   </PageNameBox>
                 </StyledLink>
               </GridItem>

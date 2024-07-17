@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,6 +36,15 @@ const Paper = ({ article, style, index, movePaper, initialX, initialY, initialRo
     }
   };
 
+  const contentRef = useRef(null);
+  const [contentHeight, setContentHeight] = useState(0);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setContentHeight(contentRef.current.offsetHeight);
+    }
+  }, [article]);
+
   return (
     <motion.div
       ref={(node) => {
@@ -45,21 +54,25 @@ const Paper = ({ article, style, index, movePaper, initialX, initialY, initialRo
         ...style,
         opacity: isDragging ? 0.5 : 1,
         zIndex: isSelected ? 1000 : zIndex,
+        height: contentHeight ? contentHeight + 60 : 'auto', // 패딩 20px, 여유 20px 추가
+        width: '320px', // 여유 20px 추가
       }}
       initial={{ y: '-100vh', opacity: 0 }}
       animate={{
-        y: isSelected ? window.innerHeight / 2 - 250 : initialY, // 세로 크기 조절
-        x: isSelected ? window.innerWidth / 2 - 150 : initialX,
+        y: isSelected ? window.innerHeight / 2 - (contentHeight + 60) / 2 : initialY,
+        x: isSelected ? window.innerWidth / 2 - 160 : initialX,
         rotate: isSelected ? 0 : initialRotation,
         opacity: 1,
-        scale: isSelected ? 1.5 : 1, // 축소된 확대 비율
+        scale: isSelected ? 1.5 : 1,
       }}
       exit={{ y: '-100vh', opacity: 0 }}
       transition={{ duration: 0.5 }}
       onClick={onClick}
     >
-      <h2 style={styles.headline} onClick={handleHeadlineClick}>{article.title}</h2>
-      <p style={styles.summary}>{article.summary === "No summary available. More in link" ? "No summary available. More in link" : article.summary}</p>
+      <div ref={contentRef}>
+        <h2 style={styles.headline} onClick={handleHeadlineClick}>{article.title}</h2>
+        <p style={styles.summary}>{article.summary === "No summary available. More in link" ? "No summary available. More in link" : article.summary}</p>
+      </div>
     </motion.div>
   );
 };
@@ -69,23 +82,33 @@ const PaperPage = ({ countryData, onBack }) => {
   const [selectedPage, setSelectedPage] = useState(null);
   const [zIndices, setZIndices] = useState([]);
   const [isExiting, setIsExiting] = useState(false);
+  const [notSupported, setNotSupported] = useState(false);
 
   useEffect(() => {
     const fetchNews = async () => {
       try {
         const response = await fetch(`http://13.124.216.160:3000/api/get_news_summary/${countryData.properties.iso_a2}`);
         const data = await response.json();
-        // value 기준으로 정렬하고 최대 12개만 사용
-        const sortedData = data.sort((a, b) => b.value - a.value).slice(0, 12);
-        setNews(
-          sortedData.map((article) => ({
-            ...article,
-            ...generateRandomPosition(),
-          }))
-        );
-        setZIndices(sortedData.map((_, index) => index));
+        const filteredData = data.filter((article) => article.title !== "Title Not available");
+        const sortedData = filteredData.sort((a, b) => b.value - a.value).slice(0, 12);
+
+        console.log(sortedData.length);
+
+        if (sortedData.length < 10) {
+          setNews([]);
+          setNotSupported(true);
+        } else {
+          setNews(
+            sortedData.map((article) => ({
+              ...article,
+              ...generateRandomPosition(),
+            }))
+          );
+          setZIndices(sortedData.map((_, index) => index));
+        }
       } catch (error) {
         console.error('Error fetching news:', error);
+        setNotSupported(true);
       }
     };
 
@@ -93,9 +116,9 @@ const PaperPage = ({ countryData, onBack }) => {
   }, [countryData]);
 
   const generateRandomPosition = () => {
-    const x = Math.random() * (window.innerWidth - 300); // 300은 페이지의 대략적인 너비
-    const y = Math.random() * (window.innerHeight - 600); // 600은 페이지의 대략적인 높이
-    const rotation = Math.random() * 60 - 30; // -30도에서 30도 사이의 랜덤 회전
+    const x = Math.random() * (window.innerWidth - 320); // 여유 20px 추가
+    const y = Math.random() * (window.innerHeight - 500) + 100; // 화면 중앙에 가깝게 배치
+    const rotation = Math.random() * 60 - 30;
     return { x, y, rotation };
   };
 
@@ -103,8 +126,8 @@ const PaperPage = ({ countryData, onBack }) => {
     setNews((prevNews) =>
       prevNews.map((article, i) => {
         if (i === index) {
-          const newX = Math.min(window.innerWidth - 300, Math.max(0, (article.x || 0) + deltaX));
-          const newY = Math.min(window.innerHeight - 600, Math.max(0, (article.y || 0) + deltaY));
+          const newX = Math.min(window.innerWidth - 320, Math.max(0, (article.x || 0) + deltaX)); // 여유 20px 추가
+          const newY = Math.min(window.innerHeight - 500, Math.max(0, (article.y || 0) + deltaY));
           return { ...article, x: newX, y: newY };
         }
         return article;
@@ -128,7 +151,7 @@ const PaperPage = ({ countryData, onBack }) => {
 
   const handleExit = () => {
     setIsExiting(true);
-    setTimeout(onBack, 500); // 애니메이션 종료 시간 후에 onBack 호출
+    setTimeout(onBack, 500);
   };
 
   return (
@@ -145,32 +168,37 @@ const PaperPage = ({ countryData, onBack }) => {
           x
         </div>
         <AnimatePresence>
-          {!isExiting && news.map((article, index) => {
-            const { x = 0, y = 0, rotation = 0 } = article;
-            const isSelected = selectedPage === index;
-            return (
-              <Paper
-                key={index}
-                article={article}
-                index={index}
-                movePaper={movePaper}
-                initialX={x}
-                initialY={y}
-                initialRotation={rotation}
-                isSelected={isSelected}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handlePageClick(index);
-                }}
-                zIndex={zIndices[index]}
-                style={{
-                  ...styles.container,
-                  transform: `translate(${x}px, ${y}px) rotate(${rotation}deg)`,
-                  transition: 'transform 0.5s ease', // 애니메이션 적용
-                }}
-              />
-            );
-          })}
+          {!isExiting && !notSupported ? (
+            news.map((article, index) => {
+              const { x = 0, y = 0, rotation = 0 } = article;
+              const isSelected = selectedPage === index;
+              return (
+                <Paper
+                  key={index}
+                  article={article}
+                  index={index}
+                  movePaper={movePaper}
+                  initialX={x}
+                  initialY={y}
+                  initialRotation={rotation}
+                  isSelected={isSelected}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePageClick(index);
+                  }}
+                  zIndex={zIndices[index]}
+                  style={{
+                    ...styles.container,
+                    transform: `translate(${x}px, ${y}px) rotate(${rotation}deg)`,
+                    transition: 'transform 0.5s ease',
+                  }}
+                />
+              );
+            })
+          ) : (
+            notSupported && 
+            <div style={styles.notSupported}>Not Supported</div>
+          )}
         </AnimatePresence>
       </div>
     </DndProvider>
@@ -182,20 +210,18 @@ const styles = {
     position: 'relative',
     width: '100%',
     height: '100vh',
-    backgroundColor: '#ffffff', // 배경 색상
+    backgroundColor: '#ffffff',
   },
   container: {
-    width: '300px',
-    height: '600px', // 세로 크기 늘림
-    backgroundColor: '#f0f0f0', // 밝은 회색 배경
+    backgroundColor: '#f0f0f0',
     padding: '20px',
     fontFamily: "'Times New Roman', Times, serif",
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // 부드러운 그림자 효과
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
     boxSizing: 'border-box',
-    border: '1px solid #ddd', // 얇은 테두리
+    border: '1px solid #ddd',
     position: 'absolute',
     cursor: 'pointer',
-    transition: 'transform 0.3s ease', // 애니메이션 적용
+    transition: 'transform 0.3s ease',
   },
   backButton: {
     position: 'absolute',
@@ -210,11 +236,19 @@ const styles = {
     fontSize: '24px',
     fontWeight: 'bold',
     marginBottom: '10px',
-    cursor: 'pointer', // 링크처럼 보이도록 마우스 커서 변경
+    cursor: 'pointer',
   },
   summary: {
     fontSize: '18px',
     lineHeight: '1.6',
+  },
+  notSupported: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    fontSize: '24px',
+    color: '#333',
   },
 };
 

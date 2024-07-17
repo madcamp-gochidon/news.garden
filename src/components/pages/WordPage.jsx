@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import WordCloud from 'wordcloud';
 
-const GossipPage = ({ countryData, onBack }) => {
+const WordPage = ({ countryData, onBack }) => {
   const canvasRef = useRef(null);
   const tooltipRef = useRef(null);
   const containerRef = useRef(null);
   const [wordData, setWordData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [wordPositions, setWordPositions] = useState([]);
 
   const colorPalettes = [
     ['#EB3D3E', '#B7DBDC', '#3B5E76', '#20334D'], // 두 번째 색상표
@@ -49,7 +50,6 @@ const GossipPage = ({ countryData, onBack }) => {
         setLoading(false);
       }
     };
-    console.log("fetch");
     fetchWordData();
   }, [countryData]);
 
@@ -57,6 +57,7 @@ const GossipPage = ({ countryData, onBack }) => {
     if (!loading) {
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
+      let wordPositionsTemp = [];
 
       context.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -71,8 +72,8 @@ const GossipPage = ({ countryData, onBack }) => {
         tooltipRef.current.style.visibility = 'hidden';
       }
 
-      const widthFactor = canvasSize.width / 800; // 기준 크기 800을 사용
-      const heightFactor = canvasSize.height / 600; // 기준 크기 600을 사용
+      const widthFactor = canvasSize.width / 600; // 기준 크기 600을 사용
+      const heightFactor = canvasSize.height / 400; // 기준 크기 400을 사용
 
       // 랜덤 색상표 선택
       const selectedPalette = colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
@@ -80,7 +81,7 @@ const GossipPage = ({ countryData, onBack }) => {
       WordCloud(canvas, {
         list: wordData,
         gridSize: 15,
-        weightFactor: (size) => Math.pow(size, 2) * widthFactor * heightFactor, // 단어 크기 차이를 극명하게
+        weightFactor: (size) => (size) * 0.03 * widthFactor * heightFactor, // 페이지 크기에 연동
         fontFamily: 'Arial, sans-serif', // 원하는 폰트로 변경
         color: (word, weight, fontSize, distance, theta) => {
           return selectedPalette[Math.floor(Math.random() * selectedPalette.length)];
@@ -88,19 +89,51 @@ const GossipPage = ({ countryData, onBack }) => {
         rotateRatio: 0.5,
         rotationSteps: 2,
         shape: 'circle',
-        hover: showTooltip,
+        hover: (item, dimension, event) => {
+          showTooltip(item, dimension, event);
+          wordPositionsTemp.push({
+            word: item[0],
+            x: dimension.x,
+            y: dimension.y,
+            width: dimension.w,
+            height: dimension.h
+          });
+        },
         mouseout: hideTooltip,
-        wait: 100
+        wait: 100,
+        click: (item) => {
+          const query = item[0];
+          const url = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+          window.open(url, '_blank');
+        }
+      });
+
+      setWordPositions(wordPositionsTemp);
+
+      // 커서가 올라갈 때 포인터로 변경
+      canvas.addEventListener('mousemove', (event) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const wordHovered = wordPositions.some(pos => 
+          x >= pos.x && x <= pos.x + pos.width && 
+          y >= pos.y && y <= pos.y + pos.height
+        );
+        canvas.style.cursor = wordHovered ? 'pointer' : 'default';
+        if (!wordHovered) {
+          hideTooltip();
+        }
       });
 
       return () => {
         context.clearRect(0, 0, canvas.width, canvas.height);
+        setWordPositions([]); // 컴포넌트 언마운트 시 위치 초기화
       };
     }
   }, [loading, wordData, canvasSize]);
 
   return (
-    <div id="gossip-page" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
+    <div id="word-page" style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(255, 255, 255, 0.9)' }}>
       <div
         id="wordcloud-container"
         ref={containerRef}
@@ -152,4 +185,4 @@ const GossipPage = ({ countryData, onBack }) => {
   );
 };
 
-export default GossipPage;
+export default WordPage;
